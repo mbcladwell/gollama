@@ -1,0 +1,4 @@
+{"ollama-uri":"http://localhost:11434/api/generate",
+"model":"gemma2:2b",
+"encodings":"",
+"prefix":""}
