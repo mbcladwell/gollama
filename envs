@@ -1,4 +1,4 @@
-{"ollama-uri":"http://localhost:11434/api/generate",
+{"ollama-uri":"http://localhost:11434/v1/chat/completions",
 "model":"gemma2:2b",
 "encodings":"",
 "prefix":""}

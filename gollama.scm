@@ -18,6 +18,9 @@
 	     (gollama env)(gollama utilities)
 	     )
 
+;;https://www.youtube.com/watch?v=V1Mz8gMBDMo
+;;https://www.youtube.com/watch?v=ztBJqzBU5kc  langchain and embedding
+;;https://github.com/ollama/ollama/blob/main/docs/api.md ollama api
 
 (define *working-dir* #f)
 (define *data-dir* #f)
@@ -37,7 +40,15 @@
       ))
 
 
+;;curl http://localhost:11434/v1/chat/completions -d '{"model": "gemma2:2b","messages": [{"role": "user", "content": "Tell me a story about a brave knight"}
+;;										       ], "stream": true}'
 
+(define (send-chat text)
+  (let* ((command (string-append "curl " *ollama-uri* " -d '{\"model\": \"" *model* "\",\"messages\": [{\"role\": \"user\", \"content\": \"" text "\" ], \"stream\": true}'"))
+	 (a (call-command-with-output-to-string command))
+	 )
+   (pretty-print a ) )
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
@@ -50,6 +61,7 @@
 	 (_  (pretty-print (string-append "args: " args)))
 	 (_ (set-envs (get-envs  args)))
 	 (_  (pretty-print (string-append "in main: " *ollama-uri*)))
+	 (_ (send-chat "Hello Mom!"))
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
 	 )
