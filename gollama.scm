@@ -15,7 +15,7 @@
 	     (json)
 	     (rnrs bytevectors)
 	     (rnrs io ports ) ;;make-transocder
-	     (gollama env)(gollama utilities)
+	     (gollama env)(gollama utilities)(gollama ollama)
 	     )
 
 ;;https://www.youtube.com/watch?v=V1Mz8gMBDMo
@@ -40,15 +40,32 @@
       ))
 
 
-;;curl http://localhost:11434/v1/chat/completions -d '{"model": "gemma2:2b","messages": [{"role": "user", "content": "Tell me a story about a brave knight"}
-;;										       ], "stream": true}'
+;;curl http://localhost:11434/api/embed -d '{"model": "mistral", "input": "Why is the sky blue?"}'
 
-(define (send-chat text)
-  (let* ((command (string-append "curl " *ollama-uri* " -d '{\"model\": \"" *model* "\",\"messages\": [{\"role\": \"user\", \"content\": \"" text "\" ], \"stream\": true}'"))
+(define (get-embedding text)
+  (let* ((command (string-append "curl " "http://localhost:11434/api/embed" " -d '{\"model\": \"" "mistral" "\",\"input\":\"" text "\"}'"))
 	 (a (call-command-with-output-to-string command))
+	 (b (json-string->scm a))
 	 )
-   (pretty-print a ) )
-  )
+    (pretty-print b) 
+  ))
+
+;;cosine similariy
+
+(define (square x) (* x x))
+
+(define (cosine-sim x y)
+;;cosine similariy
+  ;; https://datastax.medium.com/how-to-implement-cosine-similarity-in-python-505e8ec1d823
+  ;; x and y must be lists of similar lengths
+  (let* ((dot-product (map * x y))
+	 (magnitude-x (sqrt (apply + (map square x))))
+	 (magnitude-y (sqrt (apply + (map square y))))
+	 (dist (* magnitude-x magnitude-y)))
+   (apply + (map / dot-product `(,dist ,dist ,dist) ))))
+
+
+  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
@@ -61,7 +78,13 @@
 	 (_  (pretty-print (string-append "args: " args)))
 	 (_ (set-envs (get-envs  args)))
 	 (_  (pretty-print (string-append "in main: " *ollama-uri*)))
-	 (_ (send-chat "Hello Mom!"))
+	 ;; (_ (get-embedding "Hello Mom!"))
+	 (x '(5 3 4))
+	 (y '(4 2 4))
+	 (_ (pretty-print (cossim '(5 3 4)  '(4 2 4 )))) ;;SC(a,b) = 0.989949
+	 (_ (pretty-print (map * x y))) ;;SC(a,b) = 0.989949
+	;; (_ (pretty-print (map square '(1 2 3) )))
+	;; (_ (pretty-print (apply + '(1 2 3) )))
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
 	 )
