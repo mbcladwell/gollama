@@ -15,10 +15,12 @@
 	     (json)
 	     (rnrs bytevectors)
 	     (rnrs io ports ) ;;make-transocder
-	     (gollama env)(gollama utilities)(gollama ollama)
+	     (gollama env)(gollama utilities)(gollama ollama)(gollama db)
 	     )
 
 ;;https://www.youtube.com/watch?v=V1Mz8gMBDMo
+;; 8:40 json of embeddings    5:45 embeddings
+
 ;;https://www.youtube.com/watch?v=ztBJqzBU5kc  langchain and embedding
 ;;https://github.com/ollama/ollama/blob/main/docs/api.md ollama api
 
@@ -42,30 +44,57 @@
 
 ;;curl http://localhost:11434/api/embed -d '{"model": "mistral", "input": "Why is the sky blue?"}'
 
-(define (get-embedding text)
-  (let* ((command (string-append "curl " "http://localhost:11434/api/embed" " -d '{\"model\": \"" "mistral" "\",\"input\":\"" text "\"}'"))
-	 (a (call-command-with-output-to-string command))
-	 (b (json-string->scm a))
-	 )
-    (pretty-print b) 
-  ))
-
-;;cosine similariy
-
-(define (square x) (* x x))
-
-(define (cosine-sim x y)
-;;cosine similariy
-  ;; https://datastax.medium.com/how-to-implement-cosine-similarity-in-python-505e8ec1d823
-  ;; x and y must be lists of similar lengths
-  (let* ((dot-product (map * x y))
-	 (magnitude-x (sqrt (apply + (map square x))))
-	 (magnitude-y (sqrt (apply + (map square y))))
-	 (dist (* magnitude-x magnitude-y)))
-   (apply + (map / dot-product `(,dist ,dist ,dist) ))))
+;; (define (recurse-get-embedding model lst out counter embeddings-file chunks-file)
+;;   ;;lst is the input list of text chunks
+;;   ;;out is the output list of embeddings
+;;   ;; (get-embeddings "mistral" chunk-lst '() 0)
+;;   (if (null? (cdr lst))
+;;       (begin 
+;; 	(set! out (cons (get-embedding model (car lst)) out))
+;; 	out)
+;;       (begin
+;; 	(set! out (cons (get-embedding model (car lst)) out))
+;; 	(get-embeddings model (cdr lst) out))))
 
 
+
+(define (recurse-process-para para counter plst elst)
+  ;;para: the list of paragraphs
+  ;;plst alst of paragraphs
+  ;;elst alst of embeddings
+  ;;(recurse-process-para lst 0 '() '())
+  (if (null? (cdr para))
+      (let* ((text (car para))
+	     (embedding (get-embedding "mistral" text)))
+	(begin
+	  (set! plst (acons counter text plst))
+	  (set! elst (acons counter text elst))
+	  (list plst elst)
+	  ))
+      (let* ((text (car para))
+	     (embedding (get-embedding "mistral" text)))
+	(begin
+	  (set! plst (acons counter text plst))
+	  (set! elst (acons counter text elst))
+	  (recurse-process-para (cdr lst) (+ counter 1) plst elst)
+	  ))))
   
+  
+
+ (define (ingest-doc doc id)
+   (let* ((doc-name (basename doc ".txt"))
+	  (doc-lst (make-doc-list-element doc-name id))
+	 ;; (dot (string-rindex str #\.)) ;;reverse search
+	  ;; (pref (substring str 0  dot ))
+	  (paragraphs (collect-paragraphs doc))
+	  (results (recurse-process-para paragraphs 0 '() '()))	  
+	  (para-alst (car results))
+	  (embed-alst (cadr results))
+
+	  )
+     (pretty-print para-alst)
+   ))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
@@ -78,18 +107,18 @@
 	 (_  (pretty-print (string-append "args: " args)))
 	 (_ (set-envs (get-envs  args)))
 	 (_  (pretty-print (string-append "in main: " *ollama-uri*)))
-	 ;; (_ (get-embedding "Hello Mom!"))
-	 (x '(5 3 4))
-	 (y '(4 2 4))
-	 (_ (pretty-print (cossim '(5 3 4)  '(4 2 4 )))) ;;SC(a,b) = 0.989949
-	 (_ (pretty-print (map * x y))) ;;SC(a,b) = 0.989949
-	;; (_ (pretty-print (map square '(1 2 3) )))
-	;; (_ (pretty-print (apply + '(1 2 3) )))
+	;;  (ems (get-embeddings "mistral" chunk-lst '()))
+	 ;;(paragraphs (collect-paragraphs "/home/mbc/projects/gollama/text/ppan.txt"))
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
 	 )
     (begin
       (pretty-print (string-append "Shutting down after " (number->string elapsed-time) " seconds of use."))
+      ;;(pretty-print ems)
+      (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/ppan.txt" "1234"))
+;;      (pretty-print (cosine-sim #(1 2 3 4 5) #(5 6 7)))
+  ;;    (pretty-print (acons 1 "hello" '()) )
+    ;;  (pretty-print (get-embedding "mistral" "sometext" ))
       )))
 
 
