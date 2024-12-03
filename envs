@@ -1,4 +1,5 @@
 {"ollama-uri":"http://localhost:11434/v1/chat/completions",
 "model":"gemma2:2b",
 "encodings":"",
-"prefix":""}
+"prefix":"",
+"working-dir":"/home/mbc/projects/gollama"}

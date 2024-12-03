@@ -16,6 +16,7 @@
 	     (rnrs bytevectors)
 	     (rnrs io ports ) ;;make-transocder
 	     (gollama env)(gollama utilities)(gollama ollama)(gollama db)
+	     (rnrs sorting) ;;list-sort
 	     )
 
 ;;https://www.youtube.com/watch?v=V1Mz8gMBDMo
@@ -68,15 +69,15 @@
 	     (embedding (get-embedding "mistral" text)))
 	(begin
 	  (set! plst (acons counter text plst))
-	  (set! elst (acons counter text elst))
+	  (set! elst (acons counter embedding elst))
 	  (list plst elst)
 	  ))
       (let* ((text (car para))
 	     (embedding (get-embedding "mistral" text)))
 	(begin
 	  (set! plst (acons counter text plst))
-	  (set! elst (acons counter text elst))
-	  (recurse-process-para (cdr lst) (+ counter 1) plst elst)
+	  (set! elst (acons counter embedding elst))
+	  (recurse-process-para (cdr para) (+ counter 1) plst elst)
 	  ))))
   
   
@@ -86,14 +87,31 @@
 	  (doc-lst (make-doc-list-element doc-name id))
 	 ;; (dot (string-rindex str #\.)) ;;reverse search
 	  ;; (pref (substring str 0  dot ))
-	  (paragraphs (collect-paragraphs doc))
-	  (results (recurse-process-para paragraphs 0 '() '()))	  
-	  (para-alst (car results))
-	  (embed-alst (cadr results))
-
-	  )
-     (pretty-print para-alst)
+	   (paragraphs (collect-paragraphs doc))
+	   (results (recurse-process-para paragraphs 0 '() '()))	  
+	   (para-alst (car results))
+	   (embed-alst (cadr results))
+	   )
+     (begin
+     (save-list-to-json (string-append doc-name "-embeddings") embed-alst *working-dir*)
+     (save-list-to-json (string-append doc-name "-paragraphs") para-alst *working-dir*))
    ))
+
+;;https://www.gnu.org/software/guile/manual/html_node/rnrs-sorting.html
+
+;; (define my-list '(
+;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 1))
+;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 5))
+;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 3))
+;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 6))
+;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 2))
+;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 4))
+;; 		  ))
+
+(define (sort-embeddings x y)
+  (> (assoc-ref x "embedding")(assoc-ref y "embedding")))
+
+  
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -115,10 +133,11 @@
     (begin
       (pretty-print (string-append "Shutting down after " (number->string elapsed-time) " seconds of use."))
       ;;(pretty-print ems)
-      (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/ppan.txt" "1234"))
+      (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234"))
 ;;      (pretty-print (cosine-sim #(1 2 3 4 5) #(5 6 7)))
   ;;    (pretty-print (acons 1 "hello" '()) )
-    ;;  (pretty-print (get-embedding "mistral" "sometext" ))
+       ;; (pretty-print (get-embedding "mistral" "sometext" ))
+     ;; (pretty-print (list-sort my-sort my-list))
       )))
 
 

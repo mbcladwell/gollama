@@ -14,23 +14,25 @@
 	     #:use-module (ice-9 readline) ;;must sudo apt-get install libreadline-dev; guix package -i guile-readline
 	     #:use-module (json)
 	     #:export (make-doc-list-element)
-	     #:export (make-json-for-gs)
-	     #:export (get-all-books)
-	     #:export (get-books-with-title)
-	     #:export (get-books-for-author)
-	     #:export (get-books-with-tag)
-	     #:export (get-book-with-isbn)
-	     #:export (get-book-with-id)
-	     #:export (cons-books-to-lib)
-	     #:export (assign-tags-to-book)
-	     #:export (add-tags-to-book)
-	     #:export (substitute-new-for-old-book)	     
+	     #:export (save-list-to-json)	     
 	     )
 
 
 (define (make-doc-list-element title id)
   ;;title must have extension .txt stripped
    `(("title" . ,title)("id" . ,id)("embeddings" . ,(string-append title "-embeddings.json" ))("paragraphs" . ,(string-append title "-paragraphs.json" ))))
+
+
+(define (save-list-to-json file-name lst top-dir)
+  ;;json for db
+  (let* (;;(vec (list->vector lst))
+;;	 (content (scm->json-string `(("books" .  ,vec))))
+	 (content (scm->json-string lst))
+	 (pref (date->string  (current-date) "~Y~m~d~I~M~s"))
+	 (gs-filename (string-append top-dir "/db/" file-name "-" pref ".json"))
+	 (out-port (open-file gs-filename "a"))
+	 (dummy (put-string out-port content)))
+    (force-output out-port)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

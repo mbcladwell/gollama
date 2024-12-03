@@ -88,8 +88,7 @@
 ;; 	   (cons paragraph para-lst)) ;;is EOF but must append last paragraph
 ;; 	   ))
 
-(define (collect-paragraphs text)
-  
+(define (collect-paragraphs text)  
   (define paragraph "")
   (define para-lst '())
   (let* (
@@ -104,17 +103,23 @@
 		  (begin
 		    (set! para-lst (cons paragraph para-lst))
 		    (set! paragraph "")))
-	      (set! line (read-line port)))))  ;; end of empty line check
-	 (cons paragraph para-lst)) ;;is EOF but must append last paragraph
-    )
+	      (set! line (read-line port)))));; end of empty line check
+    (begin
+      (if (< 0 (string-length paragraph))(cons paragraph para-lst))
+      para-lst) ;;is EOF but must append last paragraph
+    ))
 
 
 (define (get-embedding model-name chunk)
   ;;model mistral
   (let* ((command (string-append "curl " "http://localhost:11434/api/embed" " -d '{\"model\": \""  model-name  "\",\"input\":\"" chunk "\"}'"))
 	 (a (call-command-with-output-to-string command))
+	 (_ (pretty-print chunk))
 	 (b (assoc-ref (json-string->scm a)  "embeddings")))
     (vector-ref b 0)))
+;;     b ))
+
+
 
 (define (recurse-get-embedding model lst out)
   ;;lst is the input list of text chunks
