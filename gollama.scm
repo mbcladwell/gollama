@@ -13,9 +13,13 @@
 	     (ice-9 iconv)
 	     (ice-9 textual-ports)(ice-9 binary-ports)(ice-9 popen)
 	     (json)
+	     
 	     (rnrs bytevectors)
 	     (rnrs io ports ) ;;make-transocder
-	     (gollama env)(gollama utilities)(gollama ollama)(gollama db)
+	     (gollama env)	     
+	     (gollama utilities)	     
+	     (gollama ollama)	     
+	     (gollama db)
 	     (rnrs sorting) ;;list-sort
 	     )
 
@@ -119,6 +123,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
+;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/ubuntu/gollama")'
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
