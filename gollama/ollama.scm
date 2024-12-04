@@ -126,11 +126,11 @@
 
 (define (get-embedding model chunk)
   (let* ((a (receive (response body)
-	       (http-request "http://127.0.0.1:11434/api/embed"
+	       (http-request "https://127.0.0.1:11434/api/embed"
 			     #:method 'POST
 			     #:body (scm->json-string `(("model" . ,model)("input" . ,chunk)))
-			     #:streaming? #f
-			     #:verify-certificate? #f)
+			     #:streaming? #f)
+;;			     #:verify-certificate? #f)
 	     (utf8->string body)))
 	 (b (assoc-ref (json-string->scm a)  "embeddings")))
     (vector-ref b 0)))
