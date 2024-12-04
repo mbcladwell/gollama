@@ -12,6 +12,12 @@
  #:use-module (json)
  #:use-module (rnrs bytevectors )
 ;; #:use-module (rnrs io ports #:select ())
+ #:use-module (web response)
+ #:use-module (web request)
+ #:use-module (web uri)
+ #:use-module (web client)
+ #:use-module (web http)
+ #:use-module (ice-9 receive)
  #:use-module (ice-9 textual-ports)
  #:use-module (mcron job-specifier)
  #:use-module (ice-9 ftw);;scandir
@@ -110,15 +116,24 @@
     ))
 
 
-(define (get-embedding model-name chunk)
-  ;;model mistral
-  (let* ((command (string-append "curl " "http://localhost:11434/api/embed" " -d '{\"model\": \""  model-name  "\",\"input\":\"" chunk "\"}'"))
-	 (a (call-command-with-output-to-string command))
-	 (_ (pretty-print chunk))
-	 (b (assoc-ref (json-string->scm a)  "embeddings")))
-    (vector-ref b 0)))
+;; (define (get-embedding model-name chunk)
+;;   ;;model mistral
+;;   (let* ((command (string-append "curl " "http://localhost:11434/api/embed" " -d '{\"model\": \""  model-name  "\",\"input\":\"" chunk "\"}'"))
+;; 	 (a (call-command-with-output-to-string command))
+;; 	 (_ (pretty-print chunk))
+;; 	 (b (assoc-ref (json-string->scm a)  "embeddings")))
+;;     (vector-ref b 0)))
 ;;     b ))
 
+(define (get-embedding model chunk)
+  (let* ((a (receive (response body)
+	       (http-request "http://127.0.0.1:11434/api/embed"
+			     #:method 'POST
+			     #:body (scm->json-string `(("model" . ,model)("input" . ,chunk)))
+			     #:streaming? #f )
+	     (utf8->string body)))
+	 (b (assoc-ref (json-string->scm a)  "embeddings")))
+    (vector-ref b 0)))
 
 
 (define (recurse-get-embedding model lst out)

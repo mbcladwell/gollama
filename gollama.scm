@@ -45,6 +45,9 @@
 
 ;;curl http://localhost:11434/api/embed -d '{"model": "mistral", "input": "Why is the sky blue?"}'
 
+
+
+
 ;; (define (recurse-get-embedding model lst out counter embeddings-file chunks-file)
 ;;   ;;lst is the input list of text chunks
 ;;   ;;out is the output list of embeddings
@@ -125,7 +128,8 @@
 	 (_  (pretty-print (string-append "args: " args)))
 	 (_ (set-envs (get-envs  args)))
 	 (_  (pretty-print (string-append "in main: " *ollama-uri*)))
-	;;  (ems (get-embeddings "mistral" chunk-lst '()))
+	 ;;  (ems (get-embeddings "mistral" chunk-lst '()))
+;;	 (a (get-with-http "Why is the sky blue?" "mistral"))
 	 ;;(paragraphs (collect-paragraphs "/home/mbc/projects/gollama/text/ppan.txt"))
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
@@ -136,8 +140,9 @@
       (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234"))
 ;;      (pretty-print (cosine-sim #(1 2 3 4 5) #(5 6 7)))
   ;;    (pretty-print (acons 1 "hello" '()) )
-       ;; (pretty-print (get-embedding "mistral" "sometext" ))
-     ;; (pretty-print (list-sort my-sort my-list))
+       (pretty-print (get-embedding "mistral" "sometext" ))
+      
+      (pretty-print a)
       )))
 
 

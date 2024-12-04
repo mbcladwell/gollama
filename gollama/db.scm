@@ -30,9 +30,11 @@
 	 (content (scm->json-string lst))
 	 (pref (date->string  (current-date) "~Y~m~d~I~M~s"))
 	 (gs-filename (string-append top-dir "/db/" file-name "-" pref ".json"))
-	 (out-port (open-file gs-filename "a"))
-	 (dummy (put-string out-port content)))
-    (force-output out-port)))
+	 (out-port (open-file gs-filename "a")))
+    (begin
+	 (put-string out-port content)
+	 (force-output out-port)
+	 (close-port out-port))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
