@@ -129,7 +129,8 @@
 	       (http-request "http://127.0.0.1:11434/api/embed"
 			     #:method 'POST
 			     #:body (scm->json-string `(("model" . ,model)("input" . ,chunk)))
-			     #:streaming? #f )
+			     #:streaming? #f
+			     #:verify-certificates? #f)
 	     (utf8->string body)))
 	 (b (assoc-ref (json-string->scm a)  "embeddings")))
     (vector-ref b 0)))
