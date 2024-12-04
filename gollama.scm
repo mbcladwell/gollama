@@ -50,61 +50,6 @@
 
 
 
-
-;; (define (recurse-get-embedding model lst out counter embeddings-file chunks-file)
-;;   ;;lst is the input list of text chunks
-;;   ;;out is the output list of embeddings
-;;   ;; (get-embeddings "mistral" chunk-lst '() 0)
-;;   (if (null? (cdr lst))
-;;       (begin 
-;; 	(set! out (cons (get-embedding model (car lst)) out))
-;; 	out)
-;;       (begin
-;; 	(set! out (cons (get-embedding model (car lst)) out))
-;; 	(get-embeddings model (cdr lst) out))))
-
-
-
-(define (recurse-process-para para counter plst elst model)
-  ;;para: the list of paragraphs
-  ;;plst alst of paragraphs
-  ;;elst alst of embeddings
-  ;;(recurse-process-para lst 0 '() '())
-  (if (null? (cdr para))
-      (let* ((text (car para))
-	     (embedding (get-embedding uri model text)))
-	(begin
-	  (set! plst (acons counter text plst))
-	  (set! elst (acons counter embedding elst))
-	  (list plst elst)
-	  ))
-      (let* ((text (car para))
-	     (embedding (get-embedding uri model text)))
-	(begin
-	  (set! plst (acons counter text plst))
-	  (set! elst (acons counter embedding elst))
-	  (recurse-process-para (cdr para) (+ counter 1) plst elst)
-	  ))))
-  
-  
-
- (define (ingest-doc doc id model)
-   (let* ((doc-name (basename doc ".txt"))
-	  (doc-lst (make-doc-list-element doc-name id))
-	 ;; (dot (string-rindex str #\.)) ;;reverse search
-	  ;; (pref (substring str 0  dot ))
-	   (paragraphs (collect-paragraphs doc))
-	   (results (recurse-process-para paragraphs 0 '() '() model))	  
-	   (para-alst (car results))
-	   (embed-alst (cadr results))
-	   )
-     (begin
-     (save-list-to-json (string-append doc-name "-embeddings") embed-alst *top-dir*)
-     (save-list-to-json (string-append doc-name "-paragraphs") para-alst *top-dir*))
-   ))
-
-;;https://www.gnu.org/software/guile/manual/html_node/rnrs-sorting.html
-
 ;; (define my-list '(
 ;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 1))
 ;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 5))
@@ -115,9 +60,65 @@
 ;; 		  ))
 
 (define (sort-embeddings x y)
+  ;;https://www.gnu.org/software/guile/manual/html_node/rnrs-sorting.html
   (> (assoc-ref x "embedding")(assoc-ref y "embedding")))
 
-  
+(define (recurse-get-scores lst out)
+  ;;lst is the alist from the embeddings file
+  ;;out is the alist from the embedding file
+  (if (null? (cdr lst))
+      (car lst)
+      (my-last (cdr lst))))
+
+;; the alist looks like:
+;; ("0"
+;;  .
+;;  #(0.073323704
+;;    0.0071268696
+;;    -0.122482516              1684 elements
+
+
+
+(define (get-sorted-scores file)
+  (define counter 0)
+  (define results '())
+    (let* (
+	   (p  (open-input-file (string-append *top-dir* "/db/" file)))
+	   (haystack (json-string->scm (get-string-all p)))
+	   (dummy (close-port p))
+	   (haystack-length (length haystack))
+	   (query "Who is Captain Hook?")
+	   ;;  (needle (get-embedding *embeddings-uri* *model* query))
+	   (needle (assoc-ref haystack "100"))
+	  ;; (score (cosine-sim needle (assoc-ref haystack counter)))
+	   (_ (while (> haystack-length counter)
+	    	(begin
+		  (set! results (cons `(("id" . ,(number->string counter))("embedding" . ,(cosine-sim needle (assoc-ref haystack (number->string counter))))) results))
+		  
+	    	  (set! counter (+ 1 counter)))))
+	   (results-sorted (list-sort sort-embeddings results))
+	   (p  (open-input-file (string-append *top-dir* "/db/" "ppan-paragraphs-2024120403091733324998.json")))
+	   (paragraphs (json-string->scm (get-string-all p)))
+	   (dummy (close-port p))
+	   (_ (set! counter 0))
+	   (_ (while (> 5 counter )
+	    	(begin
+		  (pretty-print (assoc-ref paragraphs "100"))
+		  (set! counter (+ counter 1)))))
+	
+
+	   )
+      (begin
+	#t
+       	(pretty-print (car results-sorted))
+;;	(save-list-to-json "ppan-sorted-embeds" results-sorted *top-dir*)
+;;	(pretty-print (vector-length query-embedding))
+;;	(pretty-print (vector-length (assoc-ref a "100")))
+;;	(pretty-print (vector-length (assoc-ref a "0")))
+	)
+      ))
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -133,21 +134,17 @@
 	 (_ (set-envs (get-envs  args)))
 	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
 	 (_  (pretty-print (string-append "in main: " *model*)))
-	 (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
-;;	 (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model*))
+	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
+	;; (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model* *embeddings-uri*))
 	 ;;  (ems (get-embeddings uri "mistral" chunk-lst '()))
-;;	 (a (get-with-http "Why is the sky blue?" "mistral"))
-	 ;;(paragraphs (collect-paragraphs "/home/mbc/projects/gollama/text/ppan.txt"))
+	 ;;(paragraphs (collect-paragraphs "/home/mbc/projects/gollama/text/minppan.txt"))
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
 	 )
     (begin
-      (pretty-print (string-append "Shutting down after " (number->string elapsed-time) " seconds of use."))
-      ;;(pretty-print ems)
+      (get-sorted-scores "ppan-embeddings-2024120403091733324998.json")
 ;;      (pretty-print (cosine-sim #(1 2 3 4 5) #(5 6 7)))
   ;;    (pretty-print (acons 1 "hello" '()) )
-       
-      
-      )))
+      (pretty-print (string-append "Shutting down after " (number->string elapsed-time) " seconds of use.")))))
 
 

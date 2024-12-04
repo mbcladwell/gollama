@@ -27,7 +27,8 @@
 	   cosine-sim
 	   collect-paragraphs
 	   get-embedding
-;;	   recurse-get-embedding
+	   ;;	   recurse-get-embedding
+	   ingest-doc
 	   ))
 
 
@@ -48,11 +49,13 @@
 
 (define (square x) (* x x))
 
-(define (cosine-sim x y)
+(define (cosine-sim a b)
 ;;cosine similariy
   ;; https://datastax.medium.com/how-to-implement-cosine-similarity-in-python-505e8ec1d823
   ;; x and y must be lists of similar lengths
-  (let* ((dot-product (map * x y))
+  (let* ((x (vector->list a))
+	 (y (vector->list b))
+	 (dot-product (map * x y))
 	 (magnitude-x (sqrt (apply + (map square x))))
 	 (magnitude-y (sqrt (apply + (map square y))))
 	 (dist-lst (make-list (length x) (* magnitude-x magnitude-y))))
@@ -147,3 +150,41 @@
       (begin
 	(set! out (cons (get-embedding uri model (car lst)) out))
 	(get-embeddings uri model (cdr lst) out))))
+
+(define (recurse-process-para para counter plst elst model uri)
+  ;;para: the list of paragraphs
+  ;;plst alst of paragraphs
+  ;;elst alst of embeddings
+  ;;(recurse-process-para lst 0 '() '() model uri)
+  (if (null? (cdr para))
+      (let* ((text (car para))
+	     (embedding (get-embedding uri model text)))
+	(begin
+	  (set! plst (acons counter text plst))
+	  (set! elst (acons counter embedding elst))
+	  (list plst elst)
+	  ))
+      (let* ((text (car para))
+	     (embedding (get-embedding uri model text)))
+	(begin
+	  (set! plst (acons counter text plst))
+	  (set! elst (acons counter embedding elst))
+	  (recurse-process-para (cdr para) (+ counter 1) plst elst model uri)
+	  ))))
+  
+  
+
+ (define (ingest-doc doc id model uri top-dir)
+   (let* ((doc-name (basename doc ".txt"))
+	  (doc-lst (make-doc-list-element doc-name id))
+	 ;; (dot (string-rindex str #\.)) ;;reverse search
+	  ;; (pref (substring str 0  dot ))
+	   (paragraphs (collect-paragraphs doc))
+	   (results (recurse-process-para paragraphs 0 '() '() model uri))	  
+	   (para-alst (car results))
+	   (embed-alst (cadr results))
+	   )
+     (begin
+     (save-list-to-json (string-append doc-name "-embeddings") embed-alst top-dir)
+     (save-list-to-json (string-append doc-name "-paragraphs") para-alst top-dir))
+   ))
