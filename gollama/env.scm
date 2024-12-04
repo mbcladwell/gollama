@@ -12,7 +12,6 @@
 #:use-module (rnrs io ports)
 ;#:use-module (ice-9 textual-ports)
 #:use-module (gcrypt base64)
-#:use-module (ebbot utilities)
 #:export ( 
 	  get-envs
 	  ))
