@@ -13,7 +13,6 @@
  #:use-module (rnrs bytevectors )
 ;; #:use-module (rnrs io ports #:select ())
  #:use-module (ice-9 textual-ports)
- #:use-module (mcron job-specifier)
  #:use-module (ice-9 ftw);;scandir
  #:use-module (ice-9 format)
  #:export (get-rand-file-name
