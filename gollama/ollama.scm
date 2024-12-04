@@ -130,7 +130,7 @@
 			     #:method 'POST
 			     #:body (scm->json-string `(("model" . ,model)("input" . ,chunk)))
 			     #:streaming? #f
-			     #:verify-certificates? #f)
+			     #:verify-certificate? #f)
 	     (utf8->string body)))
 	 (b (assoc-ref (json-string->scm a)  "embeddings")))
     (vector-ref b 0)))
