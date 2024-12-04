@@ -18,7 +18,7 @@
 
 ;;working-dir determined by starting dir
 
-(define *working-dir* (getcwd))
+(define *top-dir* (getcwd))
 (define *tweet-length* #f)
 (define *redirecturi* #f)
 (define *data-dir* #f)
@@ -35,7 +35,7 @@
 	   ;;  (js (call-command-with-output-to-string command))
 
 	     
-	     (p  (open-input-file (string-append *working-dir* "/envs")))
+	     (p  (open-input-file (string-append *top-dir* "/envs")))
 	     (a (json-string->scm (get-string-all p)))
 	     (dummy (close-port p))
 	     )

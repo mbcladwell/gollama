@@ -124,26 +124,26 @@
 ;;     (vector-ref b 0)))
 ;;     b ))
 
-(define (get-embedding model chunk)
+(define (get-embedding uri model chunk)
   (let* ((a (receive (response body)
-	       (http-request "http://0.0.0.0:11434/api/embed"
+	       (http-request uri
 			     #:method 'POST
 			     #:body (scm->json-string `(("model" . ,model)("input" . ,chunk)))
 			     #:streaming? #f
 			     #:verify-certificate? #f)
-	     (utf8->string body)))
+	      (utf8->string body)))	   
 	 (b (assoc-ref (json-string->scm a)  "embeddings")))
     (vector-ref b 0)))
 
 
-(define (recurse-get-embedding model lst out)
+(define (recurse-get-embedding uri model lst out)
   ;;lst is the input list of text chunks
   ;;out is the output list of embeddings
   ;; (get-embeddings "mistral" chunk-lst '())
   (if (null? (cdr lst))
       (begin 
-	(set! out (cons (get-embedding model (car lst)) out))
+	(set! out (cons (get-embedding uri model (car lst)) out))
 	out)
       (begin
-	(set! out (cons (get-embedding model (car lst)) out))
-	(get-embeddings model (cdr lst) out))))
+	(set! out (cons (get-embedding uri model (car lst)) out))
+	(get-embeddings uri model (cdr lst) out))))
