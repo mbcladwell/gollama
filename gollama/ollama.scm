@@ -22,6 +22,8 @@
  #:use-module (ice-9 ftw);;scandir
  #:use-module (ice-9 format)
  #:use-module (gollama utilities)
+ #:use-module (rnrs sorting) ;;list-sort
+
  #:export (get-message
 	   send-chat
 	   cosine-sim
@@ -29,6 +31,8 @@
 	   get-embedding
 	   ;;	   recurse-get-embedding
 	   ingest-doc
+	   get-sorted-scores
+	   get-first-n-list
 	   ))
 
 
@@ -188,3 +192,40 @@
      (save-list-to-json (string-append doc-name "-embeddings") embed-alst top-dir)
      (save-list-to-json (string-append doc-name "-paragraphs") para-alst top-dir))
    ))
+
+
+(define (sort-embeddings x y)
+  ;;https://www.gnu.org/software/guile/manual/html_node/rnrs-sorting.html
+  (> (assoc-ref x "embedding")(assoc-ref y "embedding")))
+
+
+(define (get-sorted-scores query file embeddings-uri model top-dir)
+  ;;get sorted scores for a query compared to a corpus
+  ;;file of embeddings for validated document
+  ;;query: text to be compared
+  (define counter 0)
+  (define scores '())
+    (let* (
+	   (p  (open-input-file (string-append top-dir "/db/" file)))
+	   (haystack (json-string->scm (get-string-all p)))
+	   (dummy (close-port p))
+	   (haystack-length (length haystack))
+	   (needle (get-embedding embeddings-uri model query))
+	;;   (needle (assoc-ref haystack "100"))
+	  ;; (score (cosine-sim needle (assoc-ref haystack counter)))
+	   (_ (while (> haystack-length counter)
+	    	(begin
+		  (set! scores (cons `(("id" . ,(number->string counter))("embedding" . ,(cosine-sim needle (assoc-ref haystack (number->string counter))))) scores))
+	    	  (set! counter (+ 1 counter))))))
+      (list-sort sort-embeddings scores)))
+
+(define (get-first-n-list lst n counter results)
+  ;;(get-first-n-list lst 5 0 '())
+  (if (or (null? (cdr lst)) (= counter (- n 1)))
+      (begin
+	(set! results (cons (car lst) results))	    
+	results)
+      (begin
+	(set! results (cons (car lst) results))	    
+	(set! counter (+ counter 1))
+	(get-first-n-list (cdr lst) n counter results))))

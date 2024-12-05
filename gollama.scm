@@ -20,11 +20,12 @@
 	     (gollama utilities)	     
 	     (gollama ollama)	     
 	     (gollama db)
-	     (rnrs sorting) ;;list-sort
 	     )
 
 ;;https://www.youtube.com/watch?v=V1Mz8gMBDMo
 ;; 8:40 json of embeddings    5:45 embeddings
+;; 9:48 has full embeddings   12:00 5 most similar  13:00 bge-base-en-v1.5
+
 
 ;;https://www.youtube.com/watch?v=ztBJqzBU5kc  langchain and embedding
 ;;https://github.com/ollama/ollama/blob/main/docs/api.md ollama api
@@ -47,21 +48,8 @@
 
 
 ;;curl http://localhost:11434/api/embed -d '{"model": "mistral", "input": "Why is the sky blue?"}'
+(define system-prompt "You are a helpful reading assistant who answers questions based on snippets of text provided in context. Answer only using the context provided, being as concise as possible. If you are unsure just say that you don't know. Context:")
 
-
-
-;; (define my-list '(
-;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 1))
-;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 5))
-;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 3))
-;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 6))
-;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 2))
-;; 		  (("a" . 1)("b" . 1)("c" . 1)("d" . 4))
-;; 		  ))
-
-(define (sort-embeddings x y)
-  ;;https://www.gnu.org/software/guile/manual/html_node/rnrs-sorting.html
-  (> (assoc-ref x "embedding")(assoc-ref y "embedding")))
 
 (define (recurse-get-scores lst out)
   ;;lst is the alist from the embeddings file
@@ -77,48 +65,51 @@
 ;;    0.0071268696
 ;;    -0.122482516              1684 elements
 
+;; find-most-similar
+;;implement minimum length
 
 
-(define (get-sorted-scores file)
-  (define counter 0)
-  (define results '())
+
+;; response = ollama.chat { model="mistral" messages=[ "role":"system"
+;; 						    "content":"SYSTEM_PROMPT"
+;; 						    + "\n".join.paragraphs (most similar chunks)]}  join to the system prompt
+;; {"role":"user","content":prompt}
+
+(define (get-paragraph-for-id conscell paragraphs)
+  ;;submit a cons cell ("123" . "0.56477") and get the paragraph for the id
+  ;;paragraphs is the file name assumed to be in ./db/
+  (let* ((id (assoc-ref conscell "id")))
+	  (assoc-ref paragraphs id)))
+
+(define (recurse-paragraphs-for-ids lst paragraphs results)
+  ;;result is initially '()
+  ;;returns a list of paragraphs
+  (if (null? (cdr lst))
+      (begin
+	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
+	results)	
+      (begin
+	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
+	(recurse-paragraphs-for-ids (cdr lst) paragraphs results))))
+
+  
+
+(define (get-top-hits query file N)
+  ;;N number of hits desired
     (let* (
+	   (sorted-scores (get-sorted-scores query file *embeddings-uri* *model* *top-dir*))
+	   (top-5-scores (get-first-n-list sorted-scores 5 0 '()))
 	   (p  (open-input-file (string-append *top-dir* "/db/" file)))
 	   (haystack (json-string->scm (get-string-all p)))
-	   (dummy (close-port p))
-	   (haystack-length (length haystack))
-	   (query "Who is Captain Hook?")
-	   ;;  (needle (get-embedding *embeddings-uri* *model* query))
-	   (needle (assoc-ref haystack "100"))
-	  ;; (score (cosine-sim needle (assoc-ref haystack counter)))
-	   (_ (while (> haystack-length counter)
-	    	(begin
-		  (set! results (cons `(("id" . ,(number->string counter))("embedding" . ,(cosine-sim needle (assoc-ref haystack (number->string counter))))) results))
-		  
-	    	  (set! counter (+ 1 counter)))))
-	   (results-sorted (list-sort sort-embeddings results))
-	   (p  (open-input-file (string-append *top-dir* "/db/" "ppan-paragraphs-2024120403091733324998.json")))
-	   (paragraphs (json-string->scm (get-string-all p)))
-	   (dummy (close-port p))
-	   (_ (set! counter 0))
-	   (_ (while (> 5 counter )
-	    	(begin
-		  (pretty-print (assoc-ref paragraphs "100"))
-		  (set! counter (+ counter 1)))))
-	
-
+	   (_ (close-port p))	   
+	   (paras (recurse-paragraphs-for-ids top-5-scores haystack '()))
 	   )
-      (begin
-	#t
-       	(pretty-print (car results-sorted))
-;;	(save-list-to-json "ppan-sorted-embeds" results-sorted *top-dir*)
-;;	(pretty-print (vector-length query-embedding))
-;;	(pretty-print (vector-length (assoc-ref a "100")))
-;;	(pretty-print (vector-length (assoc-ref a "0")))
-	)
-      ))
+      paras))
 
 
+	  
+
+  
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -134,6 +125,10 @@
 	 (_ (set-envs (get-envs  args)))
 	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
 	 (_  (pretty-print (string-append "in main: " *model*)))
+	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
+	 (query "Who is the story's primary villain?")
+	;; (query "Where does peter take wendy in the story?")
+	 (_  (pretty-print (get-top-hits query "ppan-embeddings-2024120403091733324998.json" 5)))
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
 	;; (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model* *embeddings-uri*))
 	 ;;  (ems (get-embeddings uri "mistral" chunk-lst '()))
@@ -142,7 +137,7 @@
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
 	 )
     (begin
-      (get-sorted-scores "ppan-embeddings-2024120403091733324998.json")
+ ;;     (get-sorted-scores "ppan-embeddings-2024120403091733324998.json")
 ;;      (pretty-print (cosine-sim #(1 2 3 4 5) #(5 6 7)))
   ;;    (pretty-print (acons 1 "hello" '()) )
       (pretty-print (string-append "Shutting down after " (number->string elapsed-time) " seconds of use.")))))
