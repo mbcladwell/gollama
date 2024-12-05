@@ -114,7 +114,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
-;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/ubuntu/gollama")'
+;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(main "/home/ubuntu/gollama")'
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,8 +127,10 @@
 	 (_  (pretty-print (string-append "in main: " *model*)))
 	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
 	 (query "Who is the story's primary villain?")
+	 
 	;; (query "Where does peter take wendy in the story?")
 	 (_  (pretty-print (get-top-hits query "ppan-embeddings-2024120403091733324998.json" 5)))
+	 (_ (pretty-print "i am here"))
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
 	;; (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model* *embeddings-uri*))
 	 ;;  (ems (get-embeddings uri "mistral" chunk-lst '()))
