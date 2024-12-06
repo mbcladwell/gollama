@@ -75,43 +75,9 @@
 ;; 						    + "\n".join.paragraphs (most similar chunks)]}  join to the system prompt
 ;; {"role":"user","content":prompt}
 
-(define (get-paragraph-for-id conscell paragraphs)
-  ;;submit a cons cell ("123" . "0.56477") and get the paragraph for the id
-  ;;paragraphs is the file name assumed to be in ./db/
-  (let* ((id (assoc-ref conscell "id")))
-	  (assoc-ref paragraphs id)))
-
-(define (recurse-paragraphs-for-ids lst paragraphs results)
-  ;;result is initially '()
-  ;;returns a list of paragraphs
-  (if (null? (cdr lst))
-      (begin
-	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
-	results)	
-      (begin
-	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
-	(recurse-paragraphs-for-ids (cdr lst) paragraphs results))))
-
-  
-
-(define (get-top-hits query file N)
-  ;;N number of hits desired
-    (let* (
-	   (sorted-scores (get-sorted-scores query file *embeddings-uri* *model* *top-dir*))
-	   (top-5-scores (get-first-n-list sorted-scores 5 0 '()))
-	   (p  (open-input-file (string-append *top-dir* "/db/" file)))
-	   (haystack (json-string->scm (get-string-all p)))
-	   (_ (close-port p))	   
-	   (paras (recurse-paragraphs-for-ids top-5-scores haystack '()))
-	   )
-      paras))
 
 
 	  
-
-  
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
 ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(main "/home/ubuntu/gollama")'
@@ -126,11 +92,11 @@
 	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
 	 (_  (pretty-print (string-append "in main: " *model*)))
 	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
-	 (query "Who is the story's primary villain?")
-	 
-	;; (query "Where does peter take wendy in the story?")
-	 (_  (pretty-print (get-top-hits query "ppan-embeddings-2024120403091733324998.json" 5)))
-	 (_ (pretty-print "i am here"))
+	 (needle "Who is the story's primary villain?")
+	 (haystack "ppan-embeddings-2024120403091733324998.json")
+	 (paragraphs "ppan-paragraphs-2024120403091733324998.json")	 
+	 ;; (needle "Where does peter take wendy in the story?")	 
+	 (_   (get-top-hits needle haystack  5 paragraphs *embeddings-uri* *model* *top-dir*))   
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
 	;; (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model* *embeddings-uri*))
 	 ;;  (ems (get-embeddings uri "mistral" chunk-lst '()))

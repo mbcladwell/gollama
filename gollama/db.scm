@@ -23,12 +23,13 @@
    `(("title" . ,title)("id" . ,id)("embeddings" . ,(string-append title "-embeddings.json" ))("paragraphs" . ,(string-append title "-paragraphs.json" ))))
 
 
-(define (save-list-to-json file-name lst top-dir)
+(define* (save-list-to-json file-name lst top-dir #:optional model )
   ;;json for db
   (let* (;;(vec (list->vector lst))
 ;;	 (content (scm->json-string `(("books" .  ,vec))))
 	 (content (scm->json-string lst))
-	 (pref (date->string  (current-date) "~Y~m~d~I~M~s"))
+	  (pref (if model  (string-append (date->string  (current-date) "~m~d~I~M-")  model)
+		   (string-append (date->string  (current-date) "~m~d~I~M"))))
 	 (gs-filename (string-append top-dir "/db/" file-name "-" pref ".json"))
 	 (out-port (open-file gs-filename "a")))
     (begin

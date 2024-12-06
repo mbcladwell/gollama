@@ -33,6 +33,7 @@
 	   ingest-doc
 	   get-sorted-scores
 	   get-first-n-list
+	   get-top-hits
 	   ))
 
 
@@ -229,3 +230,37 @@
 	(set! results (cons (car lst) results))	    
 	(set! counter (+ counter 1))
 	(get-first-n-list (cdr lst) n counter results))))
+
+(define (get-paragraph-for-id conscell paragraphs)
+  ;;submit a cons cell ("123" . "0.56477") and get the paragraph for the id
+  ;;paragraphs is the file name assumed to be in ./db/
+  (let* ((id (assoc-ref conscell "id")))
+	  (assoc-ref paragraphs id)))
+
+(define (recurse-paragraphs-for-ids lst paragraphs results)
+  ;;result is initially '()
+  ;;returns a list of paragraphs
+  (if (null? (cdr lst))
+      (begin
+	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
+	results)	
+      (begin
+	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
+	(recurse-paragraphs-for-ids (cdr lst) paragraphs results))))
+
+(define (get-top-hits needle haystack N paragraphs embeddings-uri model top-dir)
+  ;;N number of hits desired
+  ;;haystack: all embeddings for text
+  ;;needle: query to be compared to haystack
+  ;;paragraphs: file name of the list of paragraphs of the text;
+ ;; will return highest scoring paragraphs concatenated into a single paragraph
+    (let* (
+	   (sorted-scores (get-sorted-scores needle haystack embeddings-uri model top-dir))
+	   (top-5-scores (get-first-n-list sorted-scores 5 0 '()))
+	 ;;  (_ (pretty-print (string-append "paras: " top-5-scores)))
+	   (p  (open-input-file (string-append top-dir "/db/" paragraphs)))
+	   (content (json-string->scm (get-string-all p)))
+	   (_ (close-port p))	   
+	   (paras (string-concatenate (recurse-paragraphs-for-ids top-5-scores content '())))
+	   )
+      (pretty-print paras)))
