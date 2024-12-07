@@ -179,12 +179,12 @@
   
   
 
- (define (ingest-doc doc id model uri top-dir)
-   (let* ((doc-name (basename doc ".txt"))
-	  (doc-lst (make-doc-list-element doc-name id))
-	 ;; (dot (string-rindex str #\.)) ;;reverse search
-	  ;; (pref (substring str 0  dot ))
-	   (paragraphs (collect-paragraphs doc))
+(define (ingest-doc file model uri top-dir)
+  ;;create the json index element in db.json
+  
+   (let* (;;(doc-name (basename file ".txt"))
+	  (doc-lst (make-doc-list-element file model))
+	   (paragraphs (collect-paragraphs file))
 	   (results (recurse-process-para paragraphs 0 '() '() model uri))	  
 	   (para-alst (car results))
 	   (embed-alst (cadr results))

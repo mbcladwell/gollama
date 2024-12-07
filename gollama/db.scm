@@ -13,31 +13,61 @@
 	     #:use-module (ice-9 ftw) ;; file tree walk
 	     #:use-module (ice-9 readline) ;;must sudo apt-get install libreadline-dev; guix package -i guile-readline
 	     #:use-module (json)
-	     #:export (make-doc-list-element)
-	     #:export (save-list-to-json)	     
+	     #:use-module (gollama utilities)
+	     #:export (make-doc-list-element
+		       save-list-to-json
+		       get-json-from-file
+		       add-doc-entry
+		       )	     
 	     )
 
 
-(define (make-doc-list-element title id)
-  ;;title must have extension .txt stripped
-   `(("title" . ,title)("id" . ,id)("embeddings" . ,(string-append title "-embeddings.json" ))("paragraphs" . ,(string-append title "-paragraphs.json" ))))
+(define (make-doc-list-element file model)
+  ;;expecting text file with .txt extension
+  (let* ((id (get-file-md5 file))
+	 (title  (basename file ".txt"))
+	  )
+   `(("id" . ,id)("doc" . ,file)("title" . ,title)("model" . ,model)("date" . ,(date->string  (current-date) "~y~m~d~I~M~S"))("embeddings" . ,(string-append id "-" model "-embeddings.json" ))("paragraphs" . ,(string-append id "-paragraphs.json")))))
 
 
-(define* (save-list-to-json file-name lst top-dir #:optional model )
+
+(define (save-list-to-json file-name lst top-dir )
   ;;json for db
   (let* (;;(vec (list->vector lst))
 ;;	 (content (scm->json-string `(("books" .  ,vec))))
 	 (content (scm->json-string lst))
-	  (pref (if model  (string-append (date->string  (current-date) "~m~d~I~M-")  model)
-		   (string-append (date->string  (current-date) "~m~d~I~M"))))
-	 (gs-filename (string-append top-dir "/db/" file-name "-" pref ".json"))
-	 (out-port (open-file gs-filename "a")))
+	 
+	 (a (string-append top-dir "/db/" file-name ".json"))
+	 (out-port (open-file a "a")))
     (begin
 	 (put-string out-port content)
 	 (force-output out-port)
 	 (close-port out-port))))
 
+(define (get-json-from-file file)
+  ;; returns the vector converted to list
+  (let* (
+	 (pretty-print (string-append "opening file name: " file))
+	 (p  (open-input-file file))
+	 (data (json->scm p)))
+     (vector->list data)))
 
+;;working here!!!
+(define (add-doc-entry doclst top-dir)
+  ;;new element is '(old-fname new-fname '(list of attributes))
+  ;;use (caddr to get it)
+  (let* ( (_ (pretty-print (string-append top-dir "/db/db.json")))
+	;; (olddocs (vector->list (assoc-ref (get-json-from-file (string-append top-dir "/db/db.json") ) "docs")))
+	  (olddocs  (vector->list (assoc-ref (car (get-json-from-file (string-append top-dir "/db/db.json") )) "docs")))
+	 (_ (pretty-print  olddocs))
+	 (newdocs (cons doclst olddocs))
+	 )
+  ;;  #f
+    (pretty-print newdocs)
+   ;; (save-list-to-json "db" newdocs top-dir)
+    ))
+  
+ 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -55,8 +85,6 @@
 ;; 	 )
 ;;     (vector->list book-vec)))
 
-(define (get-all-books);;as list
-  (get-json "books"))
 
 
 (define (cons-books-to-lib new old)

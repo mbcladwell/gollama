@@ -15,7 +15,14 @@
  #:use-module (ice-9 textual-ports)
  #:use-module (ice-9 ftw);;scandir
  #:use-module (ice-9 format)
+ #:use-module (gcrypt hash)
+ #:use-module (ice-9 binary-ports)
+ #:use-module (ice-9 match)
+ #:use-module (gcrypt hash)
+ #:use-module (gcrypt base16)
  #:export (get-rand-file-name
+	   get-rand-num-string
+	   get-file-md5
 	   add-two-lists
 	   chunk-a-tweet
 	   get-counter
@@ -59,11 +66,16 @@
  (if (= n (string-length s))
      s
      (begin
-       (set! s (string-append s (string (vector-ref nonce-chars (random 58 (seed->random-state (number->string (time-nanosecond (current-time)))))) )))
+       (usleep 10000)
+       (set! s (string-append s (string (vector-ref nonce-chars (random 5 (seed->random-state (number->string (time-nanosecond (current-time)))))) )))
        (get-nonce n s))))
   	 
 (define (get-rand-file-name pre suff)
   (string-append pre "-" (number->string (random 10000000000000000000000)) "." suff))
+
+(define (get-rand-num-string)
+   (number->string (random 100000000)))
+
 
 (define (get-counter dir)
   ;;counter is the last tweeted id
@@ -239,4 +251,9 @@
      result
      (read-delimited "" (car out-cons)))))
 
+;;(define (get-file-hash file)
+;;  (substring (call-command-with-output-to-string (string-append "sha256sum " file)) 0 12))
+
+(define (get-file-md5 file)
+  (substring (bytevector->base16-string (md5 (call-with-input-file file get-bytevector-all))) 0 12))
 

@@ -3,6 +3,8 @@
 (use-modules (srfi srfi-19)   ;; date time
 	     (srfi srfi-1)  ;;list searching; delete-duplicates in list 
 	     (srfi srfi-9)  ;;records
+	     (srfi srfi-11)
+	     (srfi srfi-64)
 	     (web response)(web request) (web uri)(web client) (web http)(ice-9 receive)
 	     (ice-9 pretty-print)
 	     (ice-9 regex) ;;list-matches
@@ -10,12 +12,13 @@
 	     (ice-9 rdelim)
 	     (ice-9 i18n)   ;; internationalization	     	     	     
 	     (ice-9 readline)
-	     (ice-9 iconv)
+;;	     (ice-9 iconv)
 	     (ice-9 textual-ports)(ice-9 binary-ports)(ice-9 popen)
 	     (json)
-	     
+	     (gcrypt hash)
+	     (gcrypt base16)
 	     (rnrs bytevectors)
-	     (rnrs io ports ) ;;make-transocder
+	    (rnrs io ports ) 
 	     (gollama env)	     
 	     (gollama utilities)	     
 	     (gollama ollama)	     
@@ -76,7 +79,6 @@
 ;; {"role":"user","content":prompt}
 
 
-
 	  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
@@ -96,10 +98,15 @@
 	 (haystack "ppan-embeddings-2024120403091733324998.json")
 	 (paragraphs "ppan-paragraphs-2024120403091733324998.json")	 
 	 ;; (needle "Where does peter take wendy in the story?")	 
-	 (_   (get-top-hits needle haystack  5 paragraphs *embeddings-uri* *model* *top-dir*))   
+	;; (_   (get-top-hits needle haystack  5 paragraphs *embeddings-uri* *model* *top-dir*))   
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
-	;; (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model* *embeddings-uri*))
+	 ;; (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model* *embeddings-uri*))
+	 ;;(_ (pretty-print (file-sha256 "/home/mbc/projects/gollama/text/minppan.txt")))
+	;; (_ (pretty-print (make-doc-list-element  "mytitle" (get-nonce 20 "") "llama32" (date->string  (current-date) "~y~m~d~I~M") )))
 	 ;;  (ems (get-embeddings uri "mistral" chunk-lst '()))
+	 (a (make-doc-list-element "/home/mbc/projects/gollama/text/ppan.txt" "mistral-embed"))
+	;; (_ (save-list-to-json "test" a *top-dir* ))
+	 (_ (add-doc-entry a *top-dir*))
 	 ;;(paragraphs (collect-paragraphs "/home/mbc/projects/gollama/text/minppan.txt"))
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
