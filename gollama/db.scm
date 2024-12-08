@@ -22,12 +22,15 @@
 	     )
 
 
-(define (make-doc-list-element file model)
+(define (make-doc-list-element file model algo)
   ;;expecting text file with .txt extension
-  (let* ((id (get-file-md5 file))
+  ;;file is the full path - must ingest document for md5
+  ;;algo: cosine-similarity:cosine-sim 
+  (let* (;;(id (get-file-md5 file))
 	 (title  (basename file ".txt"))
+	 (id (substring (get-sha256 (string-append title model algo)) 0 12))
 	  )
-   `(("id" . ,id)("doc" . ,file)("title" . ,title)("model" . ,model)("date" . ,(date->string  (current-date) "~y~m~d~I~M~S"))("embeddings" . ,(string-append id "-" model "-embeddings.json" ))("paragraphs" . ,(string-append id "-paragraphs.json")))))
+   `(("id" . ,id)("doc" . ,file)("title" . ,title)("model" . ,model)("algorithm" . ,algo)("date" . ,(date->string  (current-date) "~y~m~d~I~M~S"))("embeddings" . ,(string-append id "-embe.json" ))("paragraphs" . ,(string-append id "-para.json")))))
 
 
 

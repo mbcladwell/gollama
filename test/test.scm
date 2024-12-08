@@ -74,11 +74,28 @@
 
 
 
-;; response = ollama.chat { model="mistral" messages=[ "role":"system"
+;; response = ollama.chat { model="nomic-embed-text" messages=[ "role":"system"
 ;; 						    "content":"SYSTEM_PROMPT"
 ;; 						    + "\n".join.paragraphs (most similar chunks)]}  join to the system prompt
 ;; {"role":"user","content":prompt}
 
+
+(define (chat-with-prompt uri model custom-prompt similar-chunks query)
+  ;;custom-prompt:
+  ;;similar-chunks:
+  (let* ((content (string-append system-prompt "\n" similar-chunks))
+	  (data `(("model" . ,model)("message" . #((("role" . "system")("content" . ,content))(("role" . "user")("content" . ,query))))
+	  (a (receive (response body)
+	       (http-request uri
+			     #:method 'POST
+			     #:body (scm->json-string data)
+			     #:streaming? #f
+			     #:verify-certificate? #f)
+	      (utf8->string body)))	   
+	  (b (assoc-ref (json-string->scm a)  "embeddings"))
+	  (c (vector-ref b 0))
+	)))
+  )
 
 	  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -11,7 +11,7 @@
  #:use-module (ice-9 pretty-print)
  #:use-module (json)
  #:use-module (rnrs bytevectors )
-;; #:use-module (rnrs io ports #:select ())
+ #:use-module (rnrs io ports) ;;string->bytevector
  #:use-module (ice-9 textual-ports)
  #:use-module (ice-9 ftw);;scandir
  #:use-module (ice-9 format)
@@ -23,6 +23,7 @@
  #:export (get-rand-file-name
 	   get-rand-num-string
 	   get-file-md5
+	   get-sha256
 	   add-two-lists
 	   chunk-a-tweet
 	   get-counter
@@ -257,3 +258,5 @@
 (define (get-file-md5 file)
   (substring (bytevector->base16-string (md5 (call-with-input-file file get-bytevector-all))) 0 12))
 
+(define (get-sha256 text)
+  (bytevector->base16-string (sha256 (string->bytevector text (make-transcoder (utf-8-codec))))))
