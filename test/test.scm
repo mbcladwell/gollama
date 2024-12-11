@@ -37,7 +37,8 @@
 (define *top-dir* #f)
 (define *chat-uri* #f) 
 (define *embeddings-uri* #f) 
-(define *model* #f) 
+(define *chat-model* #f) 
+(define *embeddings-model* #f) 
 (define *prefix* #f) 
 (define *gpg-key* "babweb@build-a-bot.biz")
 
@@ -45,7 +46,8 @@
   (begin
       (set! *chat-uri* (assoc-ref varlst "chat-uri"))
       (set! *embeddings-uri* (assoc-ref varlst "embeddings-uri"))
-      (set! *model* (assoc-ref varlst "model"))
+      (set! *chat-model* (assoc-ref varlst "chat-model"))
+      (set! *embeddings-model* (assoc-ref varlst "embeddings-model"))
       (set! *prefix* (assoc-ref varlst "prefix"))
       (set! *top-dir* (assoc-ref varlst "top-dir"))
       ))
@@ -80,22 +82,22 @@
 ;; {"role":"user","content":prompt}
 
 
-(define (chat-with-prompt uri model custom-prompt similar-chunks query)
-  ;;custom-prompt:
-  ;;similar-chunks:
-  (let* ((content (string-append system-prompt "\n" similar-chunks))
-	  (data `(("model" . ,model)("message" . #((("role" . "system")("content" . ,content))(("role" . "user")("content" . ,query))))
-	  (a (receive (response body)
-	       (http-request uri
-			     #:method 'POST
-			     #:body (scm->json-string data)
-			     #:streaming? #f
-			     #:verify-certificate? #f)
-	      (utf8->string body)))	   
-	  (b (assoc-ref (json-string->scm a)  "embeddings"))
-	  (c (vector-ref b 0))
-	)))
-  )
+;; (define (chat-with-prompt uri model custom-prompt similar-chunks query)
+;;   ;;custom-prompt:
+;;   ;;similar-chunks:
+;;   (let* ((content (string-append system-prompt "\n" similar-chunks))
+;; 	  (data `(("model" . ,model)("message" . #((("role" . "system")("content" . ,content))(("role" . "user")("content" . ,query))))
+;; 	  (a (receive (response body)
+;; 	       (http-request uri
+;; 			     #:method 'POST
+;; 			     #:body (scm->json-string data)
+;; 			     #:streaming? #f
+;; 			     #:verify-certificate? #f)
+;; 	      (utf8->string body)))	   
+;; 	  (b (assoc-ref (json-string->scm a)  "embeddings"))
+;; 	  (c (vector-ref b 0))
+;; 	)))
+;;   ))
 
 	  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -110,7 +112,7 @@
 	 (_  (pretty-print (string-append "args: " args)))
 	 (_ (set-envs (get-envs  args)))
 	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
-	 (_  (pretty-print (string-append "in main: " *model*)))
+	 (_  (pretty-print (string-append "in main: " *chat-model*)))
 	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
 	 (needle "Who is the story's primary villain?")
 	 (haystack "ppan-embeddings-2024120403091733324998.json")
@@ -122,7 +124,7 @@
 	 ;;(_ (pretty-print (file-sha256 "/home/mbc/projects/gollama/text/minppan.txt")))
 	;; (_ (pretty-print (make-doc-list-element  "mytitle" (get-nonce 20 "") "llama32" (date->string  (current-date) "~y~m~d~I~M") )))
 	 ;;  (ems (get-embeddings uri "mistral" chunk-lst '()))
-	 (a (make-doc-list-element "/home/mbc/projects/gollama/text/ppan.txt" "mistral-embed" "cosine-sim"))
+	 (a (make-doc-list-element "/home/mbc/projects/gollama/text/ppan.txt" *embeddings-model* "cosine-sim"))
 	;; (_ (save-list-to-json "test" a *top-dir* ))
 	 ;;		 (_ (add-doc-entry a *top-dir*))
 	 (_ (display-logo *top-dir*))

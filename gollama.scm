@@ -24,6 +24,7 @@
 	     (gollama ollama)	     
 	     (gollama db)
 	     (gollama menus)
+	     (rnrs sorting) ;;list-sort
 	     )
 
 ;;https://www.youtube.com/watch?v=V1Mz8gMBDMo
@@ -37,7 +38,8 @@
 (define *top-dir* #f)
 (define *chat-uri* #f) 
 (define *embeddings-uri* #f) 
-(define *model* #f) 
+(define *chat-model* #f) 
+(define *embeddings-model* #f) 
 (define *prefix* #f) 
 (define *gpg-key* "babweb@build-a-bot.biz")
 
@@ -45,7 +47,8 @@
   (begin
       (set! *chat-uri* (assoc-ref varlst "chat-uri"))
       (set! *embeddings-uri* (assoc-ref varlst "embeddings-uri"))
-      (set! *model* (assoc-ref varlst "model"))
+      (set! *chat-model* (assoc-ref varlst "chat-model"))
+      (set! *embeddings-model* (assoc-ref varlst "embeddings-model"))
       (set! *prefix* (assoc-ref varlst "prefix"))
       (set! *top-dir* (assoc-ref varlst "top-dir"))
       ))
@@ -80,7 +83,65 @@
 ;; {"role":"user","content":prompt}
 
 
-	  
+(define (count-tokens lst)
+   (fold (lambda (x prev)
+	   (let*((a (length (string-split x #\space)))
+		 )	 	  
+	  (cons a prev)))
+        '() lst))
+
+
+(define (get-min-tokens lst holder)
+  ;;return a minimum number of tokens a paragraph should have
+  ;;(get-min-tokens counts '())
+  ;;counts is from count-tokens
+  (if (null? (cdr lst))
+      (let* ((_  (if (> (car lst) 20)(set! holder (cons (car lst) holder))))
+	     (index (round (/ (length holder) 2))))	     
+	(vector-ref (list->vector holder) index))
+      (begin
+	(if (> (car lst) 20)(set! holder (cons (car lst) holder)))
+	(get-min-tokens (cdr lst) holder))))
+
+
+(define test-para '(
+		    "22 22" "22 22" "22 22" "22 22"
+		    "333 333 333" "333 333 333"
+		    "4444 4444 4444 4444" "4444 4444 4444 4444"
+		    "55555 55555 55555 55555 55555" "55555 55555 55555 55555 55555"
+		    "666666 666666 666666 666666 666666 666666 "))
+
+(define (normalize-para-lengths lst min-length holder out)
+  ;;combine neighboring paragraphs so that they have a minimum number of tokens
+  ;;lst: list of paragraphs
+  (if (null? (cdr lst))
+      (begin
+	(if (> (length (string-split (string-concatenate holder) #\space)) 1)
+	    (begin
+	       (set! out (cons (string-concatenate holder) out))
+	       ))
+	(set! out (cons (car lst) out))
+	 out)
+      (begin
+	(if (> (length (string-split (car lst) #\space)) min-length)
+	    (begin
+	      (set! out (cons (car lst) out))
+	      (normalize-para-lengths (cdr lst) min-length holder out)
+	      )
+	    (begin
+	      (set! holder (cons (car lst) holder))
+	      (set! holder (cons " " holder))
+	      (if (> (length (string-split (string-concatenate holder) #\space)) min-length)
+		  (begin
+		    (pretty-print holder)
+		    (set! out (cons (string-concatenate holder) out))
+		    (set! holder '())
+		    ))
+	      (normalize-para-lengths (cdr lst) min-length holder out)	      
+	      )))
+      ))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
 ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(main "/home/ubuntu/gollama")'
@@ -92,8 +153,9 @@
 	 
 	 (_  (pretty-print (string-append "args: " args)))
 	 (_ (set-envs (get-envs  args)))
+	 (_ (set-envs (get-envs  "/home/mbc/projects/gollama")))
 	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
-	 (_  (pretty-print (string-append "in main: " *model*)))
+	 (_  (pretty-print (string-append "in main: " *chat-model*)))
 	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
 	 (needle "Who is the story's primary villain?")
 	 (haystack "ppan-embeddings-2024120403091733324998.json")
@@ -101,17 +163,25 @@
 	 ;; (needle "Where does peter take wendy in the story?")	 
 	;; (_   (get-top-hits needle haystack  5 paragraphs *embeddings-uri* *model* *top-dir*))   
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
-	 ;; (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" "1234" *model* *embeddings-uri*))
 	 ;;(_ (pretty-print (file-sha256 "/home/mbc/projects/gollama/text/minppan.txt")))
 	;; (_ (pretty-print (make-doc-list-element  "mytitle" (get-nonce 20 "") "llama32" (date->string  (current-date) "~y~m~d~I~M") )))
 	 ;;  (ems (get-embeddings uri "mistral" chunk-lst '()))
-	 (a (make-doc-list-element "/home/mbc/projects/gollama/text/ppan.txt" "mistral-embed" "cosine-sim"))
-	;; (_ (save-list-to-json "test" a *top-dir* ))
-	 ;;		 (_ (add-doc-entry a *top-dir*))
-	 (_ (display-logo *top-dir*))
-;;	 (_ (pretty-print (get-sha256 (string->bytevector "hello world" (make-transcoder (utf-8-codec))))))
-;;	 (_ (pretty-print (get-sha256  "hello world" )))
-	 ;;(paragraphs (collect-paragraphs "/home/mbc/projects/gollama/text/minppan.txt"))
+;;	 (doc-lst (make-doc-list-element "/home/mbc/projects/gollama/text/ppan.txt" *embeddings-model* "cosine-sim"))
+	;; (_ (pretty-print (ingest-doc "/home/mbc/projects/gollama/text/minppan.txt" *embeddings-model* *embeddings-uri* *top-dir* "cosine-sim")))
+	   ;; (_ (save-list-to-json "test" a *top-dir* ))
+;;	 (_ (add-doc-entry doc-lst *top-dir*))
+;;	 (_ (display-logo *top-dir*))
+	 (paragraphs (collect-paragraphs "/home/mbc/projects/gollama/text/ppan.txt"))
+;;	 (_ (pretty-print paragraphs))
+;;	 (_ (pretty-print (list-sort > (count-tokens paragraphs))))
+	 ;;	 (_ (pretty-print (length (list-sort > (count-tokens paragraphs)))))
+	 (a  (list-sort > (count-tokens paragraphs)))
+;;	 (_ (pretty-print  a))
+	 (min-tokens (get-min-tokens a '()))
+	 (_ (pretty-print "here"))
+	 (norm-para (normalize-para-lengths paragraphs min-tokens '() '()))
+	 (_ (pretty-print (length paragraphs)))
+	 (_ (pretty-print (length norm-para)))
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
 	 )

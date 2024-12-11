@@ -179,19 +179,39 @@
   
   
 
-(define (ingest-doc file model uri top-dir)
+(define (ingest-doc file embeddings-model embeddings-uri top-dir algorithm)
   ;;create the json index element in db.json
   
-   (let* (;;(doc-name (basename file ".txt"))
-	  (doc-lst (make-doc-list-element file model))
-	   (paragraphs (collect-paragraphs file))
-	   (results (recurse-process-para paragraphs 0 '() '() model uri))	  
-	   (para-alst (car results))
-	   (embed-alst (cadr results))
+  (let* (;;(doc-name (basename file ".txt"))
+	 ;;makes doc-lst; adds to db; backs up old db; assigns all filenames
+	 (doc-lst (make-doc-list-element file embeddings-model algorithm))
+	 (_ (pretty-print (string-append "id: " (assoc-ref doc-lst "id"))))
+	 (_ (pretty-print (string-append "document: " (assoc-ref doc-lst "doc"))))
+	 (_ (pretty-print (string-append "title: " (assoc-ref doc-lst "title"))))
+	 (_ (pretty-print (string-append "model: " (assoc-ref doc-lst "model"))))
+	 (_ (pretty-print (string-append "algorithm: " (assoc-ref doc-lst "algorithm"))))
+	 (_ (pretty-print (string-append "date: " (assoc-ref doc-lst "date"))))
+	 (_ (pretty-print (string-append "embeddings file: " (assoc-ref doc-lst "embeddings"))))
+	 (_ (pretty-print (string-append "paragraphs file: " (assoc-ref doc-lst "paragraphs"))))
+	 (_ (pretty-print "\n\n"))
+	 (paragraphs (collect-paragraphs file))
+	 (_ (pretty-print (string-append "Paragraph count original doc: " (number->string (length paragraphs)))))
+	 ;;count token per paragraph and sort; determine min number of tokens
+	 ;;by removing counts <20 then taking the middle value of remaining
+	 (num-tokens  (list-sort > (count-tokens paragraphs)))
+	 (min-tokens (get-min-tokens num-tokens '()))
+	 (_ (pretty-print (string-append "Minimum tokens per paragraph: " (number->string min-tokens))))
+	 ;;normalize the paragraph number i.e. make sure all paragraphs have min-tokens tokens
+	 (norm-para (normalize-para-lengths paragraphs min-tokens '() '()))
+	 (_ (pretty-print (string-append "Paragraph count norm doc: " (number->string (length norm-para)))))
+	 
+	 (results (recurse-process-para norm-para 0 '() '() embeddings-model embeddings-uri))	  
+	 (para-alst (car results))
+	 (embed-alst (cadr results))
 	   )
      (begin
-     (save-list-to-json (string-append doc-name "-embeddings") embed-alst top-dir)
-     (save-list-to-json (string-append doc-name "-paragraphs") para-alst top-dir))
+     (save-list-to-json (assoc-ref doc-lst "embeddings") embed-alst top-dir)
+     (save-list-to-json (assoc-ref doc-lst  "paragraphs") para-alst top-dir))
    ))
 
 
