@@ -48,14 +48,14 @@
   (string-append top-dir "/backup/" (basename file-name ".json") (date->string  (current-date) "-~Y~m~d~H~M~S") ".json"))
 
  
-(define (get-json-from-file file)
+(define (get-json-from-file file resource)
   ;; returns the vector converted to list
   (let* ((p  (open-input-file file))
-	 (data (json->scm p))
+	 (data (assoc-ref (json->scm p) resource))
 	;; (_ (pretty-print "data in get-json:"))
 	;; (_ (pretty-print data))
 	 )
-       data))
+       (vector->list data)))
 
 
 (define (add-doc-entry doclst top-dir)
@@ -63,9 +63,9 @@
 	 (db-fn (string-append top-dir "/db/db.json"))
 	 (bak-fn (make-backup-file-name "db.json" top-dir))
 	 (_ (copy-file db-fn bak-fn))
-	 (olddocs  (get-json-from-file db-fn))
-	 (olddocs2 (vector->list (assoc-ref olddocs "docs")))
-	 (newdocs (cons doclst olddocs2))
+	 (olddocs  (get-json-from-file db-fn "docs"))
+	 ;;(olddocs2 (vector->list (assoc-ref olddocs "docs")))
+	 (newdocs (cons doclst olddocs))
 	 (content (scm->json-string   `(("docs" . ,(list->vector newdocs)))))
 	 (out-port (open-file db-fn "w"))
 	 )

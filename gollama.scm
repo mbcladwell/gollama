@@ -109,7 +109,7 @@
 
 	 ;;(_ (ingest-doc "/home/mbc/projects/gollama/text/ppan.txt" *embeddings-model* *embeddings-uri* *top-dir* "cosine-sim"))
 	 (npara-file (string-append *top-dir* "/db/74200e1561b7-npar.json"))
-	 (npara-lst (get-json-from-file npara-file))
+	 (npara-lst   (get-json-from-file npara-file "norm-para"))
 	 (_ (pretty-print npara-lst))
 	;; (_ (recurse-process-para "74200e1561b7" npara-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
 	 (stop-time (current-time time-monotonic))
@@ -121,3 +121,18 @@
     ))
 
 
+;; In gollama/ollama.scm:
+;;    221:24  6 (recurse-process-para _ _ _ _ _ _ _ _)
+;;    191:36  5 (get-embedding "http://127.0.0.1:11434/api/embed" _ _)
+;; In ice-9/ports.scm:
+;;     552:4  4 (call-with-output-string _)
+;; In json/builder.scm:
+;;     122:6  3 (json-build-object (("model" . #f) ("input" "no?" . #)) ?)
+;; In srfi/srfi-1.scm:
+;;     634:9  2 (for-each #<procedure 731892ade340 at json/builder.scm?> ?)
+;; In json/builder.scm:
+;;     121:6  1 (json-build-object ("norm-para" . #("The Project G?" ?)) ?)
+;;    105:21  0 (build-object-pair "norm-para" #<output: string 73188f?> ?)
+
+;; json/builder.scm:105:21: In procedure build-object-pair:
+;; In procedure car: Wrong type argument in position 1 (expecting pair): "norm-para"

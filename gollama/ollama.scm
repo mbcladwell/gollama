@@ -30,7 +30,8 @@
 	   cosine-sim
 	   collect-paragraphs
 	   get-embedding
-	   ;;	   recurse-get-embedding
+	   recurse-process-para
+
 	   ingest-doc
 	   get-sorted-scores
 	   get-first-n-list

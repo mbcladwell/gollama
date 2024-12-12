@@ -4,7 +4,10 @@ sudo apt-get update
 sudo apt-get --assume-yes upgrade 
 sudo apt-get --assume-yes autoremove 
 sudo apt-get --assume-yes autoclean
-sudo apt-get install nscd
+sudo apt-get install nscd gnupg
+
+wget 'https://sv.gnu.org/people/viewgpg.php?user_id=15145' -qO - | sudo -i gpg --import -
+wget 'https://sv.gnu.org/people/viewgpg.php?user_id=127547' -qO - | sudo -i gpg --import -
 
 git clone --depth 1 https://github.com/mbcladwell/gollama.git
 rm ./gollama/envs
@@ -24,4 +27,4 @@ ollama pull nomic-embed-text
 
 
 
-# scp -i lapan.pem scp /home/mbc/projects/gollama/scripts/config-aws.sh ubuntu@
+# scp -i lapan.pem /home/mbc/projects/gollama/scripts/config-aws.sh ubuntu@ec2-54-172-207-45.compute-1.amazonaws.com:.
