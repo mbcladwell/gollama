@@ -15,11 +15,21 @@
 	     #:use-module (json)
 	     #:use-module (gollama utilities)
 	     #:export (make-doc-list-element
-		       save-list-to-json
+		       send-json-to-file
 		       get-json-from-file
 		       add-doc-entry
 		       )	     
 	     )
+
+
+(define* (send-json-to-file resource data file-name)
+  ;; resource: books tags suffixes (this is also the key in a-list)
+  ;;data must be a list
+  (let* (
+	 (stow (scm->json-string (acons resource (list->vector data) '())))
+	 (p  (open-output-file file-name))
+	 (_ (put-string p stow)))
+    (force-output p)))
 
 
 (define (make-doc-list-element file model algo)
@@ -30,45 +40,39 @@
 	 (title  (basename file ".txt"))
 	 (id (substring (get-sha256 (string-append title model algo)) 0 12))
 	  )
-   `(("id" . ,id)("doc" . ,file)("title" . ,title)("model" . ,model)("algorithm" . ,algo)("date" . ,(date->string  (current-date) "~y~m~d~I~M~S"))("embeddings" . ,(string-append id "-embe.json" ))("paragraphs" . ,(string-append id "-para.json")))))
+    `(("id" . ,id)("doc" . ,file)("title" . ,title)("model" . ,model)("algorithm" . ,algo)
+      ("date" . ,(date->string  (current-date) "~y~m~d~I~M~S")))))
 
 
 (define (make-backup-file-name file-name  top-dir)
   (string-append top-dir "/backup/" (basename file-name ".json") (date->string  (current-date) "-~Y~m~d~H~M~S") ".json"))
 
  
-
-(define (save-list-to-db file-name lst top-dir )
-  ;;json for db
-  (let* (
-	 (content (scm->json-string   `(("docs" . ,(list->vector lst)))))
-	 (a (string-append top-dir "/db/" file-name ".json"))
-	 (out-port (open-file a "w"))
-	 )
-    (begin
-	 (put-string out-port content)
-	 (force-output out-port)
-      (close-port out-port)
-      )))
-
 (define (get-json-from-file file)
   ;; returns the vector converted to list
   (let* ((p  (open-input-file file))
 	 (data (json->scm p))
-	 (_ (pretty-print "data in get-json:"))
-	 (_ (pretty-print data))
+	;; (_ (pretty-print "data in get-json:"))
+	;; (_ (pretty-print data))
 	 )
        data))
 
+
 (define (add-doc-entry doclst top-dir)
   (let* (;; (_ (pretty-print (string-append top-dir "/db/db.json")))
+	 (db-fn (string-append top-dir "/db/db.json"))
 	 (bak-fn (make-backup-file-name "db.json" top-dir))
-	 (_ (copy-file (string-append top-dir "/db/db.json") bak-fn))
-	 (olddocs  (get-json-from-file (string-append top-dir "/db/db.json") ))
+	 (_ (copy-file db-fn bak-fn))
+	 (olddocs  (get-json-from-file db-fn))
 	 (olddocs2 (vector->list (assoc-ref olddocs "docs")))
 	 (newdocs (cons doclst olddocs2))
+	 (content (scm->json-string   `(("docs" . ,(list->vector newdocs)))))
+	 (out-port (open-file db-fn "w"))
 	 )
-    (save-list-to-db "db" newdocs top-dir)
+    (begin
+      (put-string out-port content)
+      (force-output out-port)
+      (close-port out-port))
     ))
   
  

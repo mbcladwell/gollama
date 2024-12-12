@@ -22,6 +22,7 @@
  #:use-module (ice-9 ftw);;scandir
  #:use-module (ice-9 format)
  #:use-module (gollama utilities)
+ #:use-module (gollama db)
  #:use-module (rnrs sorting) ;;list-sort
 
  #:export (get-message
@@ -77,6 +78,57 @@
 	 (out (string-replace-substring out "…" ""))
 	 )
     (string-trim-both out #\space)))
+
+(define (count-tokens lst)
+   (fold (lambda (x prev)
+	   (let*((a (length (string-split x #\space)))
+		 )	 	  
+	  (cons a prev)))
+        '() lst))
+
+
+(define (get-min-tokens lst holder)
+  ;;return a minimum number of tokens a paragraph should have
+  ;;(get-min-tokens counts '())
+  ;;counts is from count-tokens
+  (if (null? (cdr lst))
+      (let* ((_  (if (> (car lst) 20)(set! holder (cons (car lst) holder))))
+	     (index (round (/ (length holder) 2))))	     
+	(vector-ref (list->vector holder) index))
+      (begin
+	(if (> (car lst) 20)(set! holder (cons (car lst) holder)))
+	(get-min-tokens (cdr lst) holder))))
+
+
+(define (normalize-para-lengths lst min-length holder out)
+  ;;combine neighboring paragraphs so that they have a minimum number of tokens
+  ;;lst: list of paragraphs
+  (if (null? (cdr lst))
+      (begin
+	(if (> (length (string-split (string-concatenate holder) #\space)) 1)
+	    (begin
+	       (set! out (cons (string-concatenate holder) out))
+	       ))
+	(set! out (cons (car lst) out))
+	 out)
+      (begin
+	(if (> (length (string-split (car lst) #\space)) min-length)
+	    (begin
+	      (set! out (cons (car lst) out))
+	      (normalize-para-lengths (cdr lst) min-length holder out)
+	      )
+	    (begin
+	      (set! holder (cons (car lst) holder))
+	      (set! holder (cons " " holder))
+	      (if (> (length (string-split (string-concatenate holder) #\space)) min-length)
+		  (begin
+		   ;; (pretty-print holder)
+		    (set! out (cons (string-concatenate holder) out))
+		    (set! holder '())
+		    ))
+	      (normalize-para-lengths (cdr lst) min-length holder out)	      
+	      )))
+      ))
 
 
 ;; (define (collect-paragraphs text)
@@ -144,6 +196,7 @@
     (vector-ref b 0)))
 
 
+
 (define (recurse-get-embedding uri model lst out)
   ;;lst is the input list of text chunks
   ;;out is the output list of embeddings
@@ -156,44 +209,67 @@
 	(set! out (cons (get-embedding uri model (car lst)) out))
 	(get-embeddings uri model (cdr lst) out))))
 
-(define (recurse-process-para para counter plst elst model uri)
-  ;;para: the list of paragraphs
+
+
+(define (recurse-process-para id para counter plst elst model uri top-dir)
+  ;;para: the list of normalized paragraphs
   ;;plst alst of paragraphs
   ;;elst alst of embeddings
-  ;;(recurse-process-para lst 0 '() '() model uri)
+  ;;(recurse-process-para "jdk8suyar9" lst 0 '() '() embeddings-model uri)
   (if (null? (cdr para))
       (let* ((text (car para))
 	     (embedding (get-embedding uri model text)))
 	(begin
 	  (set! plst (acons counter text plst))
 	  (set! elst (acons counter embedding elst))
-	  (list plst elst)
+	;;  (list plst elst)
+	  (save-list-to-json (string-append id "-embe.json") elst top-dir)
+	  (save-list-to-json (string-append id "-ipar.json") plst top-dir)
 	  ))
       (let* ((text (car para))
 	     (embedding (get-embedding uri model text)))
 	(begin
 	  (set! plst (acons counter text plst))
 	  (set! elst (acons counter embedding elst))
-	  (recurse-process-para (cdr para) (+ counter 1) plst elst model uri)
+	  (recurse-process-para id (cdr para) (+ counter 1) plst elst model uri top-dir)
 	  ))))
-  
+
+;; (define (recurse-process-para para counter plst elst model embeddings-uri)
+;;   ;;para: the list of normalized paragraphs
+;;   ;;plst alst of paragraphs
+;;   ;;elst alst of embeddings
+;;   ;;(recurse-process-para lst 0 '() '() model embeddings-uri)
+;;   (if (null? (cdr para))
+;;       (let* ((text (car para))
+;; 	     (embedding (get-embedding embeddings-uri model text)))
+;; 	(begin
+;; 	  (set! plst (acons counter text plst))
+;; 	  (set! elst (acons counter embedding elst))
+;; 	  (list plst elst)
+;; 	  ))
+;;       (let* ((text (car para))
+;; 	     (embedding (get-embedding embeddings-uri model text)))
+;; 	(begin
+;; 	  (set! plst (acons counter text plst))
+;; 	  (set! elst (acons counter embedding elst))
+;; 	  (recurse-process-para (cdr para) (+ counter 1) plst elst model embeddings-uri)
+;; 	  ))))
+
   
 
 (define (ingest-doc file embeddings-model embeddings-uri top-dir algorithm)
   ;;create the json index element in db.json
   
   (let* (;;(doc-name (basename file ".txt"))
-	 ;;makes doc-lst; adds to db; backs up old db; assigns all filenames
+	 ;;makes doc-lst; adds to db; backs up old db;
 	 (doc-lst (make-doc-list-element file embeddings-model algorithm))
+	 (_ (add-doc-entry doc-lst top-dir))
 	 (_ (pretty-print (string-append "id: " (assoc-ref doc-lst "id"))))
 	 (_ (pretty-print (string-append "document: " (assoc-ref doc-lst "doc"))))
 	 (_ (pretty-print (string-append "title: " (assoc-ref doc-lst "title"))))
 	 (_ (pretty-print (string-append "model: " (assoc-ref doc-lst "model"))))
 	 (_ (pretty-print (string-append "algorithm: " (assoc-ref doc-lst "algorithm"))))
 	 (_ (pretty-print (string-append "date: " (assoc-ref doc-lst "date"))))
-	 (_ (pretty-print (string-append "embeddings file: " (assoc-ref doc-lst "embeddings"))))
-	 (_ (pretty-print (string-append "paragraphs file: " (assoc-ref doc-lst "paragraphs"))))
-	 (_ (pretty-print "\n\n"))
 	 (paragraphs (collect-paragraphs file))
 	 (_ (pretty-print (string-append "Paragraph count original doc: " (number->string (length paragraphs)))))
 	 ;;count token per paragraph and sort; determine min number of tokens
@@ -205,13 +281,15 @@
 	 (norm-para (normalize-para-lengths paragraphs min-tokens '() '()))
 	 (_ (pretty-print (string-append "Paragraph count norm doc: " (number->string (length norm-para)))))
 	 
-	 (results (recurse-process-para norm-para 0 '() '() embeddings-model embeddings-uri))	  
-	 (para-alst (car results))
-	 (embed-alst (cadr results))
+;;	 (results (recurse-process-para norm-para 0 '() '() embeddings-model embeddings-uri))	  
+;;	 (para-alst (car results))
+	 ;;	 (embed-alst (cadr results))
+	 (file-name (string-append top-dir "/db/" (assoc-ref doc-lst  "id") "-npar.json"))
 	   )
      (begin
-     (save-list-to-json (assoc-ref doc-lst "embeddings") embed-alst top-dir)
-     (save-list-to-json (assoc-ref doc-lst  "paragraphs") para-alst top-dir))
+       ;;   (save-list-to-json (assoc-ref doc-lst "embeddings") embed-alst top-dir)
+       
+     (send-json-to-file "norm-para" norm-para file-name))
    ))
 
 

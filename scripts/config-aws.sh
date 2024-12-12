@@ -6,12 +6,12 @@ sudo apt-get --assume-yes autoremove
 sudo apt-get --assume-yes autoclean
 sudo apt-get install nscd
 
-#git clone --depth 1 https://github.com/mbcladwell/gollama.git
+git clone --depth 1 https://github.com/mbcladwell/gollama.git
 rm ./gollama/envs
 cp ./gollama/scripts/envs ./gollama
 
 sudo ./gollama/scripts/guix-install-mod.sh
-guix pull
+#guix pull
 guix package -i glibc-locales             
 sudo guix install glibc-locales
 
@@ -24,3 +24,4 @@ ollama pull nomic-embed-text
 
 
 
+# scp -i lapan.pem scp /home/mbc/projects/gollama/scripts/config-aws.sh ubuntu@
