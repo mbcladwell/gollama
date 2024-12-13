@@ -95,7 +95,7 @@
 	 
 	 (_  (pretty-print (string-append "args: " args)))
 	 (_ (set-envs (get-envs  args)))
-	 (_ (set-envs (get-envs  "/home/mbc/projects/gollama")))
+	 (_ (set-envs (get-envs  *top-dir*)))
 	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
 	 (_  (pretty-print (string-append "in main: " *chat-model*)))
 	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
@@ -107,11 +107,19 @@
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
 	 ;;(_ (pretty-print (file-sha256 "/home/mbc/projects/gollama/text/minppan.txt")))
 
-	 ;;(_ (ingest-doc "/home/mbc/projects/gollama/text/ppan.txt" *embeddings-model* *embeddings-uri* *top-dir* "cosine-sim"))
-	 (npara-file (string-append *top-dir* "/db/74200e1561b7-npar.json"))
-	 (npara-lst   (get-json-from-file npara-file "norm-para"))
-	;; (_ (pretty-print npara-lst))
-	 (_ (recurse-process-para "74200e1561b7" npara-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
+;;	 (_ (ingest-doc "/home/mbc/projects/gollama/text/ppan.txt" *embeddings-model* *embeddings-uri* *top-dir* "cosine-sim"))
+
+	 (npara-file (string-append *top-dir* "/db/acbf1a82b78d-npar.json"))
+	 (npara-lst   (get-json-from-file npara-file))
+;;	 (_ (pretty-print npara-lst))
+	 (_ (recurse-process-para "acbf1a82b78d" npara-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
+
+	;; (elst '((721 . #(0.0059263664 0.3 0.4  0.5))(722 . #(0.0059263664 0.3 0.4  0.5)) ) )
+	;; (_ (pretty-print (scm->json-string (acons "embeddings" (list->vector elst) '()))))
+	 ;; (_ (pretty-print (scm->json-string  (list->vector elst) )))
+	;; (elst (cons elst '()))
+	 (_ (save-to-json (cons elst '()) (string-append *top-dir* "/db/" "jksd97suya5" "-embe.json")))
+	 
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
 	 )

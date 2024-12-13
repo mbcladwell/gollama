@@ -16,6 +16,7 @@
 	     #:use-module (gollama utilities)
 	     #:export (make-doc-list-element
 		       send-json-to-file
+		       save-to-json
 		       get-json-from-file
 		       add-doc-entry
 		       )	     
@@ -26,11 +27,21 @@
   ;; resource: books tags suffixes (this is also the key in a-list)
   ;;data must be a list
   (let* (
-	 (stow (scm->json-string (acons resource (list->vector data) '())))
+;;	 (stow (scm->json-string (acons resource (list->vector data) '())))
+	 (stow (scm->json-string  (list->vector data) ))
 	 (p  (open-output-file file-name))
 	 (_ (put-string p stow)))
     (force-output p)))
 
+(define (save-to-json data file-name)
+  ;;may need to (cons data '()) outside function 
+  (let* (
+	 (stow (scm->json-string  (list->vector data) ))
+	 (p  (open-output-file file-name))
+	 (_ (put-string p stow)))
+    (force-output p)))
+
+  
 
 (define (make-doc-list-element file model algo)
   ;;expecting text file with .txt extension
@@ -48,10 +59,10 @@
   (string-append top-dir "/backup/" (basename file-name ".json") (date->string  (current-date) "-~Y~m~d~H~M~S") ".json"))
 
  
-(define (get-json-from-file file resource)
+(define (get-json-from-file file )
   ;; returns the vector converted to list
   (let* ((p  (open-input-file file))
-	 (data (assoc-ref (json->scm p) resource))
+	 (data  (json->scm p))
 	;; (_ (pretty-print "data in get-json:"))
 	;; (_ (pretty-print data))
 	 )
@@ -63,17 +74,13 @@
 	 (db-fn (string-append top-dir "/db/db.json"))
 	 (bak-fn (make-backup-file-name "db.json" top-dir))
 	 (_ (copy-file db-fn bak-fn))
-	 (olddocs  (get-json-from-file db-fn "docs"))
-	 ;;(olddocs2 (vector->list (assoc-ref olddocs "docs")))
+	 (olddocs   (get-json-from-file db-fn))
 	 (newdocs (cons doclst olddocs))
-	 (content (scm->json-string   `(("docs" . ,(list->vector newdocs)))))
-	 (out-port (open-file db-fn "w"))
 	 )
     (begin
-      (put-string out-port content)
-      (force-output out-port)
-      (close-port out-port))
-    ))
+      (delete-file db-fn)
+      (save-to-json newdocs db-fn)
+    )))
   
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

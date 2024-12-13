@@ -224,8 +224,8 @@
 	  (set! plst (acons counter text plst))
 	  (set! elst (acons counter embedding elst))
 	;;  (list plst elst)
-	  (save-list-to-json (string-append id "-embe.json") elst top-dir)
-	  (save-list-to-json (string-append id "-ipar.json") plst top-dir)
+	  (save-to-json (cons elst '()) (string-append top-dir "/db/" id "-embe.json"))
+	  (save-to-json (cons plst '()) (string-append top-dir "/db/" id "-ipar.json"))
 	  ))
       (let* ((text (car para))
 	     (embedding (get-embedding uri model text)))
@@ -290,7 +290,7 @@
      (begin
        ;;   (save-list-to-json (assoc-ref doc-lst "embeddings") embed-alst top-dir)
        
-     (send-json-to-file "norm-para" norm-para file-name))
+     (save-to-json norm-para file-name))
    ))
 
 
