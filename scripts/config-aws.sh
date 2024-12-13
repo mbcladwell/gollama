@@ -27,4 +27,6 @@ ollama pull nomic-embed-text
 
 
 
-# scp -i lapan.pem /home/mbc/projects/gollama/scripts/config-aws.sh ubuntu@ec2-54-163-34-254.compute-1.amazonaws.com:.
+# scp -i lapan.pem /home/mbc/projects/gollama/scripts/config-aws.sh ubuntu@ec2-54-173-80-215.compute-1.amazonaws.com:.
+
+# scp -i lapan.pem /home/mbc/projects/gollama/db/ ubuntu@ec2-54-173-80-215.compute-1.amazonaws.com:~/gollama/db/

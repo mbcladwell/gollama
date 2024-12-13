@@ -1,6 +1,6 @@
 {"chat-uri":"http://127.0.0.1:11434/v1/chat/completions",
 "embeddings-uri":"http://127.0.0.1:11434/api/embed"
 "chat-model":"llama3.2:1b",
-"encodings":"nomic-embed-text",
+"embeddings-model":"nomic-embed-text",
 "prefix":"",
 "top-dir":"/home/ubuntu/gollama"}

@@ -118,7 +118,7 @@
 	;; (_ (pretty-print (scm->json-string (acons "embeddings" (list->vector elst) '()))))
 	 ;; (_ (pretty-print (scm->json-string  (list->vector elst) )))
 	;; (elst (cons elst '()))
-	 (_ (save-to-json (cons elst '()) (string-append *top-dir* "/db/" "jksd97suya5" "-embe.json")))
+;;	 (_ (save-to-json (cons elst '()) (string-append *top-dir* "/db/" "jksd97suya5" "-embe.json")))
 	 
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
