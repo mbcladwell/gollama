@@ -1,6 +1,6 @@
 #! /bin/bash
 
-sudo apt-get update
+sudo apt-get --assume-yes update
 sudo apt-get --assume-yes upgrade 
 sudo apt-get --assume-yes autoremove 
 sudo apt-get --assume-yes autoclean
@@ -29,4 +29,5 @@ ollama pull nomic-embed-text
 
 # scp -i lapan.pem /home/mbc/projects/gollama/scripts/config-aws.sh ubuntu@ec2-54-173-80-215.compute-1.amazonaws.com:.
 
-# scp -i lapan.pem /home/mbc/projects/gollama/db/ ubuntu@ec2-54-173-80-215.compute-1.amazonaws.com:~/gollama/db/
+
+# scp -i lapan.pem ubuntu@ec2-54-173-80-215.compute-1.amazonaws.com:~/gollama/db/acbf1a82b78d* /home/mbc/projects/gollama/db/

@@ -106,19 +106,31 @@
 	;; (_   (get-top-hits needle haystack  5 paragraphs *embeddings-uri* *model* *top-dir*))   
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
 	 ;;(_ (pretty-print (file-sha256 "/home/mbc/projects/gollama/text/minppan.txt")))
-
+;;       ########## 1 ingest
 ;;	 (_ (ingest-doc "/home/mbc/projects/gollama/text/ppan.txt" *embeddings-model* *embeddings-uri* *top-dir* "cosine-sim"))
 
-	 (npara-file (string-append *top-dir* "/db/acbf1a82b78d-npar.json"))
-	 (npara-lst   (get-json-from-file npara-file))
+;;       ########## 2 get embeddings
+;;	 (npara-file (string-append *top-dir* "/db/acbf1a82b78d-npar.json"))
+;;	 (npara-lst   (get-json-from-file npara-file))
 ;;	 (_ (pretty-print npara-lst))
-	 (_ (recurse-process-para "acbf1a82b78d" npara-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
+;;	 (_ (recurse-process-para "acbf1a82b78d" npara-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
 
+;;	 #######################################
 	;; (elst '((721 . #(0.0059263664 0.3 0.4  0.5))(722 . #(0.0059263664 0.3 0.4  0.5)) ) )
 	;; (_ (pretty-print (scm->json-string (acons "embeddings" (list->vector elst) '()))))
 	 ;; (_ (pretty-print (scm->json-string  (list->vector elst) )))
 	;; (elst (cons elst '()))
 ;;	 (_ (save-to-json (cons elst '()) (string-append *top-dir* "/db/" "jksd97suya5" "-embe.json")))
+;;	 #######################################
+
+;;       ########## 3 get paragraphs most similar to queries
+	 (q-file (string-append *top-dir* "/db/queries-ppan.json"))
+	 (q-lst   (get-json-from-file q-file))
+	 (_ (pretty-print q-lst))
+;;	 (_ (recurse-process-para "queries-ppan" q-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
+
+
+
 	 
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
@@ -129,18 +141,3 @@
     ))
 
 
-;; In gollama/ollama.scm:
-;;    221:24  6 (recurse-process-para _ _ _ _ _ _ _ _)
-;;    191:36  5 (get-embedding "http://127.0.0.1:11434/api/embed" _ _)
-;; In ice-9/ports.scm:
-;;     552:4  4 (call-with-output-string _)
-;; In json/builder.scm:
-;;     122:6  3 (json-build-object (("model" . #f) ("input" "no?" . #)) ?)
-;; In srfi/srfi-1.scm:
-;;     634:9  2 (for-each #<procedure 731892ade340 at json/builder.scm?> ?)
-;; In json/builder.scm:
-;;     121:6  1 (json-build-object ("norm-para" . #("The Project G?" ?)) ?)
-;;    105:21  0 (build-object-pair "norm-para" #<output: string 73188f?> ?)
-
-;; json/builder.scm:105:21: In procedure build-object-pair:
-;; In procedure car: Wrong type argument in position 1 (expecting pair): "norm-para"
