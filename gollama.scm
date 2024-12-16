@@ -57,37 +57,12 @@
 ;;curl http://localhost:11434/api/embed -d '{"model": "mistral", "input": "Why is the sky blue?"}'
 (define system-prompt "You are a helpful reading assistant who answers questions based on snippets of text provided in context. Answer only using the context provided, being as concise as possible. If you are unsure just say that you don't know. Context:")
 
-
-(define (recurse-get-scores lst out)
-  ;;lst is the alist from the embeddings file
-  ;;out is the alist from the embedding file
-  (if (null? (cdr lst))
-      (car lst)
-      (my-last (cdr lst))))
-
-;; the alist looks like:
-;; ("0"
-;;  .
-;;  #(0.073323704
-;;    0.0071268696
-;;    -0.122482516              1684 elements
-
-;; find-most-similar
-;;implement minimum length
-
-
-
-;; response = ollama.chat { model="mistral" messages=[ "role":"system"
-;; 						    "content":"SYSTEM_PROMPT"
-;; 						    + "\n".join.paragraphs (most similar chunks)]}  join to the system prompt
-;; {"role":"user","content":prompt}
-
-
+(define sys-prompt-short "You are a helpful reading assistant who answers questions based on snippets of text provided in context. Answer only using the context provided, being as concise as possible. If you are unsure just say that you don't know.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
 ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(main "/home/ubuntu/gollama")'
-
+;;guile -L . -l "gollama.scm" -c '(main "/home/ubuntu/gollama")'
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define (main args)
@@ -99,9 +74,8 @@
 	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
 	 (_  (pretty-print (string-append "in main: " *chat-model*)))
 	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
-	 (needle "Who is the story's primary villain?")
-	 (haystack "ppan-embeddings-2024120403091733324998.json")
-	 (paragraphs "ppan-paragraphs-2024120403091733324998.json")	 
+	;; (haystack "ppan-embeddings-2024120403091733324998.json")
+	;; (paragraphs "ppan-paragraphs-2024120403091733324998.json")	 
 	 ;; (needle "Where does peter take wendy in the story?")	 
 	;; (_   (get-top-hits needle haystack  5 paragraphs *embeddings-uri* *model* *top-dir*))   
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
@@ -111,7 +85,7 @@
 
 ;;       ########## 2 get embeddings
 ;;	 (npara-file (string-append *top-dir* "/db/acbf1a82b78d-npar.json"))
-;;	 (npara-lst   (get-json-from-file npara-file))
+;;	 (npara-lst   (get-list-from-json-file npara-file))
 ;;	 (_ (pretty-print npara-lst))
 ;;	 (_ (recurse-process-para "acbf1a82b78d" npara-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
 
@@ -125,12 +99,34 @@
 
 ;;       ########## 3 get paragraphs most similar to queries
 	 (q-file (string-append *top-dir* "/db/queries-ppan.json"))
-	 (q-lst   (get-json-from-file q-file))
-	 (_ (pretty-print q-lst))
+	 (q-lst   (get-list-from-json-file q-file))
+;;	 (_ (pretty-print q-lst))
 ;;	 (_ (recurse-process-para "queries-ppan" q-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
 
+	 (query-embeds (get-list-from-json-file (string-append *top-dir* "/db/queries-ppan-embe.json")))
+	 (corpus-embeds (get-list-from-json-file (string-append *top-dir* "/db/acbf1a82b78d-embe.json")))	 
+	 (queries  (get-list-from-json-file (string-append *top-dir* "/db/queries-ppan-ipar.json")))
+	 (q-embed  (get-list-from-json-file (string-append *top-dir* "/db/queries-ppan-embe.json")))
+;;	 (_ (pretty-print (assoc-ref queries "1")))
+;;	 (_ (pretty-print (assoc-ref q-embed "1"))) ;;<====compare this to all paragraphs embeddings
+	 (qem (assoc-ref q-embed "1"))
+	 
+	 (top5-concat (get-top-hits qem corpus-embeds 5 "acbf1a82b78d-ipar.json" *top-dir*))
+;;	 (_ (pretty-print top5-concat))
+;;       ########## 4 augment query with RAG
+;;        response = ollama.chat { model="mistral" messages=[ "role":"system"
+;; 						    "content":"SYSTEM_PROMPT"
+;; 						    + "\n".join.paragraphs (most similar chunks)]}  join to the system prompt
+	 ;;         {"role":"user","content":prompt}
+	 (system-prompt "You are a helpful reading assistant who answers questions based on snippets of text provided in context. Answer only using the context provided, being as concise as possible. If you are unsure just say that you don't know.")
 
+;;	 (system-prompt (string-append system-prompt " Context: " top5-concat))	 
+;;	 (prompt "Who is the story's primary villain?")
+	 (prompt "Where does Peter take Wendy in the story?")	 
 
+	 (data `(("model" . ,*chat-model*)("messages" . #((("role" . "system")("content" . ,system-prompt))(("role" . "user")("content" . ,prompt))))))
+
+	 (_ (pretty-print (get-chat-response *chat-uri* data)))
 	 
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))

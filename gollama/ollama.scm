@@ -31,7 +31,7 @@
 	   collect-paragraphs
 	   get-embedding
 	   recurse-process-para
-
+	   get-chat-response
 	   ingest-doc
 	   get-sorted-scores
 	   get-first-n-list
@@ -197,6 +197,25 @@
     (vector-ref b 0)))
 
 
+(define (get-chat-response uri data)
+  (let* ((a (receive (response body)
+		(http-request uri
+			      #:method 'POST
+			      #:body  (scm->json-string data)
+			      #:streaming? #f
+			      #:verify-certificate? #f)
+	      (utf8->string body)))
+	 (b (assoc-ref (json-string->scm a) "choices")))
+	(assoc-ref (assoc-ref (vector-ref b 0) "message") "content")))
+
+
+;;	 (b (assoc-ref (json-string->scm a)  "embeddings")))
+  ;;  (vector-ref b 0)))
+
+
+  
+
+
 
 (define (recurse-get-embedding uri model lst out)
   ;;lst is the input list of text chunks
@@ -234,27 +253,6 @@
 	  (set! elst (acons counter embedding elst))
 	  (recurse-process-para id (cdr para) (+ counter 1) plst elst model uri top-dir)
 	  ))))
-
-;; (define (recurse-process-para para counter plst elst model embeddings-uri)
-;;   ;;para: the list of normalized paragraphs
-;;   ;;plst alst of paragraphs
-;;   ;;elst alst of embeddings
-;;   ;;(recurse-process-para lst 0 '() '() model embeddings-uri)
-;;   (if (null? (cdr para))
-;;       (let* ((text (car para))
-;; 	     (embedding (get-embedding embeddings-uri model text)))
-;; 	(begin
-;; 	  (set! plst (acons counter text plst))
-;; 	  (set! elst (acons counter embedding elst))
-;; 	  (list plst elst)
-;; 	  ))
-;;       (let* ((text (car para))
-;; 	     (embedding (get-embedding embeddings-uri model text)))
-;; 	(begin
-;; 	  (set! plst (acons counter text plst))
-;; 	  (set! elst (acons counter embedding elst))
-;; 	  (recurse-process-para (cdr para) (+ counter 1) plst elst model embeddings-uri)
-;; 	  ))))
 
   
 
@@ -299,25 +297,25 @@
   (> (assoc-ref x "embedding")(assoc-ref y "embedding")))
 
 
-(define (get-sorted-scores query file embeddings-uri model top-dir)
+
+
+(define (get-sorted-scores needle haystack)
   ;;get sorted scores for a query compared to a corpus
-  ;;file of embeddings for validated document
-  ;;query: text to be compared
+  ;; embeddings for validated document
+  ;;query: embedding of text to be compared
   (define counter 0)
   (define scores '())
     (let* (
-	   (p  (open-input-file (string-append top-dir "/db/" file)))
-	   (haystack (json-string->scm (get-string-all p)))
-	   (dummy (close-port p))
 	   (haystack-length (length haystack))
-	   (needle (get-embedding embeddings-uri model query))
-	;;   (needle (assoc-ref haystack "100"))
-	  ;; (score (cosine-sim needle (assoc-ref haystack counter)))
+	  ;; (needle (assoc-ref needle-pre "1"))
+	   ;; (score (cosine-sim needle (assoc-ref haystack counter)))
+;;	   (_ (pretty-print (assoc-ref haystack "100")))
 	   (_ (while (> haystack-length counter)
 	    	(begin
 		  (set! scores (cons `(("id" . ,(number->string counter))("embedding" . ,(cosine-sim needle (assoc-ref haystack (number->string counter))))) scores))
 	    	  (set! counter (+ 1 counter))))))
       (list-sort sort-embeddings scores)))
+
 
 (define (get-first-n-list lst n counter results)
   ;;(get-first-n-list lst 5 0 '())
@@ -347,19 +345,17 @@
 	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
 	(recurse-paragraphs-for-ids (cdr lst) paragraphs results))))
 
-(define (get-top-hits needle haystack N paragraphs embeddings-uri model top-dir)
+(define (get-top-hits needle haystack N paragraphs top-dir)
   ;;N number of hits desired
   ;;haystack: all embeddings for text
   ;;needle: query to be compared to haystack
   ;;paragraphs: file name of the list of paragraphs of the text;
  ;; will return highest scoring paragraphs concatenated into a single paragraph
     (let* (
-	   (sorted-scores (get-sorted-scores needle haystack embeddings-uri model top-dir))
+	   (sorted-scores (get-sorted-scores needle haystack))
 	   (top-5-scores (get-first-n-list sorted-scores 5 0 '()))
 	 ;;  (_ (pretty-print (string-append "paras: " top-5-scores)))
-	   (p  (open-input-file (string-append top-dir "/db/" paragraphs)))
-	   (content (json-string->scm (get-string-all p)))
-	   (_ (close-port p))	   
+	   (content  (get-list-from-json-file (string-append top-dir "/db/" paragraphs)))
 	   (paras (string-concatenate (recurse-paragraphs-for-ids top-5-scores content '())))
 	   )
-      (pretty-print paras)))
+       paras))

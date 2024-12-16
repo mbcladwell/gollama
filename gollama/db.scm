@@ -17,7 +17,7 @@
 	     #:export (make-doc-list-element
 		       send-json-to-file
 		       save-to-json
-		       get-json-from-file
+		       get-list-from-json-file
 		       add-doc-entry
 		       )	     
 	     )
@@ -59,14 +59,14 @@
   (string-append top-dir "/backup/" (basename file-name ".json") (date->string  (current-date) "-~Y~m~d~H~M~S") ".json"))
 
  
-(define (get-json-from-file file )
+(define (get-list-from-json-file file )
   ;; returns the vector converted to list
   (let* ((p  (open-input-file file))
 	 (data  (json->scm p))
 	;; (_ (pretty-print "data in get-json:"))
 	;; (_ (pretty-print data))
 	 )
-       (vector->list data)))
+      (car (vector->list data))))
 
 
 (define (add-doc-entry doclst top-dir)
@@ -74,7 +74,7 @@
 	 (db-fn (string-append top-dir "/db/db.json"))
 	 (bak-fn (make-backup-file-name "db.json" top-dir))
 	 (_ (copy-file db-fn bak-fn))
-	 (olddocs   (get-json-from-file db-fn))
+	 (olddocs   (get-list-from-json-file db-fn))
 	 (newdocs (cons doclst olddocs))
 	 )
     (begin
