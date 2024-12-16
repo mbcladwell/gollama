@@ -33,14 +33,11 @@ MyFile.txt  original ascii text file
 
 |suffix|File name|Description|
 |-----|-----|----|
-
 |npar|acbf1a82b78d-npar.json  |original file with small paragraphs (< 20 tokens) combined into normalized paragraphs|
 |ipar|acbf1a82b78d-ipar.json |acbf1a82b78d-npar.json now with indices in json format.|
 |embe|acbf1a82b78d-embe.json |embeddings for associated ipar.json file matched by index|
-
 |qtxt|acbf1a82b78d-qtxt.json |indexed plain text queries|
 |qemb|acbf1a82b78d-qemb.json |indexed embeddings for queries|
-
 |qsys|acbf1a82b78d-qsys.json |indexed plain text system prompts|
 |qesy|acbf1a82b78d-qesy.json |indexed embeddings for system prompts|
 
