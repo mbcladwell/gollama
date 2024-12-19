@@ -31,22 +31,23 @@ MyFile.txt  original ascii text file
 
 <h3> <top-dir>/db directory</h3>
 
-|suffix|File name|Description|
-|-----|-----|----|
-|npar|acbf1a82b78d-npar.json  |original file with small paragraphs (< 20 tokens) combined into normalized paragraphs|
-|ipar|acbf1a82b78d-ipar.json |acbf1a82b78d-npar.json now with indices in json format.|
-|embe|acbf1a82b78d-embe.json |embeddings for associated ipar.json file matched by index|
-|qtxt|acbf1a82b78d-qtxt.json |indexed plain text queries|
-|qemb|acbf1a82b78d-qemb.json |indexed embeddings for queries|
-|qsys|acbf1a82b78d-qsys.json |indexed plain text system prompts|
-|qesy|acbf1a82b78d-qesy.json |indexed embeddings for system prompts|
+|File name|Description|
+|-----|----|
+|indexed-paragraphs.json  |original file with small paragraphs (< 20 tokens) combined into normalized and indexed paragraphs|
+|embedded-paragraphs.json |embeddings for associated indexed-paragraphs.json file matched by index|
+|queries.json |plain text queries in json format|
+|indexed-queries.json |indexed plain text queries|
+|embedded-queries.json |indexed embeddings for queries|
+|system-prompts.json | system prompts in json format||
+|indexed-system-prompts.json | system prompts, indexed in json format||
+|embedded-system-prompts.json |indexed embeddings for system prompts|
 
 
 <h2>db.json</h2>
 
-[{"id":"acbf1a82b78d",
-"doc":"/home/mbc/projects/gollama/text/ppan.txt",
-"title":"ppan",
-"model":"mistral:latest",
-"algorithm":"cosine-sim",
-"date":"241213092503"}]
+[{"id":"acbf1a82b78d",<br>
+"doc":"/home/mbc/projects/gollama/text/ppan.txt",<br>
+"title":"ppan",<br>
+"model":"mistral:latest",<br>
+"algorithm":"cosine-sim",<br>
+"date":"241213092503"}]<br>

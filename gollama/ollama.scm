@@ -22,13 +22,13 @@
  #:use-module (ice-9 ftw);;scandir
  #:use-module (ice-9 format)
  #:use-module (gollama utilities)
+ #:use-module (gollama textman)
  #:use-module (gollama db)
  #:use-module (rnrs sorting) ;;list-sort
 
  #:export (get-message
 	   send-chat
 	   cosine-sim
-	   collect-paragraphs
 	   get-embedding
 	   recurse-process-para
 	   get-chat-response
@@ -36,6 +36,7 @@
 	   get-sorted-scores
 	   get-first-n-list
 	   get-top-hits
+	   normalize-para-lengths
 	   ))
 
 
@@ -69,23 +70,6 @@
    (apply + (map / dot-product dist-lst))))
 
 
-(define (clean-chars s)
-  ;;remove offensive characters
-  (let* ((out (string-replace-substring s "'" ""))
-	 (out (string-replace-substring out "’" ""))
-	 (out (string-replace-substring out "\"" ""))
-	 (out (string-replace-substring out "“" ""))
-	 (out (string-replace-substring out "”" ""))
-	 (out (string-replace-substring out "…" ""))
-	 )
-    (string-trim-both out #\space)))
-
-(define (count-tokens lst)
-   (fold (lambda (x prev)
-	   (let*((a (length (string-split x #\space)))
-		 )	 	  
-	  (cons a prev)))
-        '() lst))
 
 
 (define (get-min-tokens lst holder)
@@ -132,48 +116,7 @@
       ))
 
 
-;; (define (collect-paragraphs text)
-;;   (begin
-;;     (define paragraph "")
-;;     (define para-lst '())
-;;     (let* (
-;; ;;	   (text "/home/mbc/projects/gollama/text/ppan.txt")
-;; 	   (port (open-input-file text))
-;; 	   (line  (read-line port))
-;; 	   (_ (while (not (eof-object? line))		    
-;; 		(if (= 0 (string-length line))
-;; 		    (begin
-;; 		      (set! para-lst (cons paragraph para-lst))
-;; 		      (set! paragraph "")
-;; 		      (set! line (read-line port))
-;; 		      )
-;; 		    (begin
-;; 		      (set! paragraph (clean-chars (string-append paragraph " " line )))
-;; 		      (set! line (read-line port))))
-;; 		)))  ;; end of empty line check
-;; 	   (cons paragraph para-lst)) ;;is EOF but must append last paragraph
-;; 	   ))
 
-(define (collect-paragraphs text)  
-  (define paragraph "")
-  (define para-lst '())
-  (let* (
-	 (port (open-input-file text))
-	 (line  (read-line port))
-	 (_ (while (not (eof-object? line))	       
-	      (while (< 0 (string-length line))		    
-		(set! paragraph (clean-chars (string-append paragraph " " line )))
-		(set! line (read-line port)))
-	      
-	      (if (< 0 (string-length paragraph))
-		  (begin
-		    (set! para-lst (cons paragraph para-lst))
-		    (set! paragraph "")))
-	      (set! line (read-line port)))));; end of empty line check
-    (begin
-      (if (< 0 (string-length paragraph))(cons paragraph para-lst))
-      para-lst) ;;is EOF but must append last paragraph
-    ))
 
 
 ;; (define (get-embedding model-name chunk)
@@ -231,45 +174,73 @@
 
 
 
-(define (recurse-process-para id para counter plst elst model uri top-dir)
+;; (define (recurse-process-para id para counter plst elst model uri top-dir)
+;;   ;;para: the list of normalized paragraphs
+;;   ;;plst alst of paragraphs
+;;   ;;elst alst of embeddings
+;;   ;;(recurse-process-para "jdk8suyar9" lst 0 '() '() embeddings-model uri)
+;;   (if (null? (cdr para))
+;;       (let* ((text (car para))
+;; 	     (embedding (get-embedding uri model text)))
+;; 	(begin
+;; 	  (set! plst (acons counter text plst))
+;; 	  (set! elst (acons counter embedding elst))
+;; 	;;  (list plst elst)
+;; 	  (save-to-json  elst (string-append top-dir "/db/" id "/embedded-paragraphs.json") #t)
+;; 	  (save-to-json  plst (string-append top-dir "/db/" id "/indexed-paragraphs.json") #t)
+;; 	  ))
+;;       (let* ((text (car para))
+;; 	     (embedding (get-embedding uri model text)))
+;; 	(begin
+;; 	  (set! plst (acons counter text plst))
+;; 	  (set! elst (acons counter embedding elst))
+;; 	  (recurse-process-para id (cdr para) (+ counter 1) plst elst model uri top-dir)
+;; 	  ))))
+
+
+(define (recurse-process-para id para elst model uri top-dir)
   ;;para: the list of normalized paragraphs
   ;;plst alst of paragraphs
   ;;elst alst of embeddings
   ;;(recurse-process-para "jdk8suyar9" lst 0 '() '() embeddings-model uri)
   (if (null? (cdr para))
-      (let* ((text (car para))
+      (let* ((index (caar para))
+	     (text (cdar para))
 	     (embedding (get-embedding uri model text)))
 	(begin
-	  (set! plst (acons counter text plst))
-	  (set! elst (acons counter embedding elst))
-	;;  (list plst elst)
-	  (save-to-json (cons elst '()) (string-append top-dir "/db/" id "-embe.json"))
-	  (save-to-json (cons plst '()) (string-append top-dir "/db/" id "-ipar.json"))
+	  (set! elst (acons index embedding elst))
+	  ;; (save-to-json  elst (string-append top-dir "/db/" id "/embedded-paragraphs.json") #t)
+	  elst
 	  ))
-      (let* ((text (car para))
+      (let* ((index (caar para))
+	     (text (cdadr para))
 	     (embedding (get-embedding uri model text)))
 	(begin
-	  (set! plst (acons counter text plst))
-	  (set! elst (acons counter embedding elst))
-	  (recurse-process-para id (cdr para) (+ counter 1) plst elst model uri top-dir)
+	  (set! elst (acons index embedding elst))
+	  (recurse-process-para id (cdr para) elst model uri top-dir)
 	  ))))
 
   
 
-(define (ingest-doc file embeddings-model embeddings-uri top-dir algorithm)
+(define (ingest-doc file chat-model embeddings-model embeddings-uri top-dir algorithm)
   ;;create the json index element in db.json
-  
+  ;;file is file name only, must be in text directory
   (let* (;;(doc-name (basename file ".txt"))
 	 ;;makes doc-lst; adds to db; backs up old db;
-	 (doc-lst (make-doc-list-element file embeddings-model algorithm))
+	 (doc-lst (make-doc-list-element file chat-model embeddings-model algorithm))
 	 (_ (add-doc-entry doc-lst top-dir))
-	 (_ (pretty-print (string-append "id: " (assoc-ref doc-lst "id"))))
+	 (id (assoc-ref doc-lst "id"))
+	 (_ (pretty-print (string-append "id: " id)))
+	 (_ (mkdir (string-append top-dir "/db/" id)))
 	 (_ (pretty-print (string-append "document: " (assoc-ref doc-lst "doc"))))
 	 (_ (pretty-print (string-append "title: " (assoc-ref doc-lst "title"))))
-	 (_ (pretty-print (string-append "model: " (assoc-ref doc-lst "model"))))
+	 (_ (pretty-print (string-append "chat-model: " (assoc-ref doc-lst "chat-model"))))
+	 (_ (pretty-print (string-append "embeddings-model: " (assoc-ref doc-lst "embeddings-model"))))
 	 (_ (pretty-print (string-append "algorithm: " (assoc-ref doc-lst "algorithm"))))
 	 (_ (pretty-print (string-append "date: " (assoc-ref doc-lst "date"))))
-	 (paragraphs (collect-paragraphs file))
+	 (source-file (string-append top-dir "/text/" file))
+	 (dest-file (string-append top-dir "/db/" id "/" file))
+	 (paragraphs (collect-paragraphs source-file))		     
 	 (_ (pretty-print (string-append "Paragraph count original doc: " (number->string (length paragraphs)))))
 	 ;;count token per paragraph and sort; determine min number of tokens
 	 ;;by removing counts <20 then taking the middle value of remaining
@@ -279,17 +250,16 @@
 	 ;;normalize the paragraph number i.e. make sure all paragraphs have min-tokens tokens
 	 (norm-para (normalize-para-lengths paragraphs min-tokens '() '()))
 	 (_ (pretty-print (string-append "Paragraph count norm doc: " (number->string (length norm-para)))))
-	 
-;;	 (results (recurse-process-para norm-para 0 '() '() embeddings-model embeddings-uri))	  
-;;	 (para-alst (car results))
-	 ;;	 (embed-alst (cadr results))
-	 (file-name (string-append top-dir "/db/" (assoc-ref doc-lst  "id") "-npar.json"))
+	 (indexed-paragraphs (provide-indices norm-para 0))	 
+	 (file-name (string-append top-dir "/db/" (assoc-ref doc-lst  "id") "/indexed-paragraphs.json"))
 	   )
      (begin
-       ;;   (save-list-to-json (assoc-ref doc-lst "embeddings") embed-alst top-dir)
-       
-     (save-to-json norm-para file-name))
-   ))
+       ;;   (save-list-to-json (assoc-ref doc-lst "embeddings") embed-alst top-dir)       
+       (save-to-json indexed-paragraphs file-name #t)
+       (copy-file source-file dest-file)
+       (delete-file source-file)
+       (process-prompt-files id top-dir)
+       )))
 
 
 (define (sort-embeddings x y)
@@ -303,13 +273,11 @@
   ;;get sorted scores for a query compared to a corpus
   ;; embeddings for validated document
   ;;query: embedding of text to be compared
-  (define counter 0)
+  (define counter 1)
   (define scores '())
-    (let* (
+    (let* (;;(_ (pretty-print "in get-sorted-scores"))
 	   (haystack-length (length haystack))
-	  ;; (needle (assoc-ref needle-pre "1"))
-	   ;; (score (cosine-sim needle (assoc-ref haystack counter)))
-;;	   (_ (pretty-print (assoc-ref haystack "100")))
+	   ;;   (_ (pretty-print haystack-length))
 	   (_ (while (> haystack-length counter)
 	    	(begin
 		  (set! scores (cons `(("id" . ,(number->string counter))("embedding" . ,(cosine-sim needle (assoc-ref haystack (number->string counter))))) scores))
@@ -328,34 +296,17 @@
 	(set! counter (+ counter 1))
 	(get-first-n-list (cdr lst) n counter results))))
 
-(define (get-paragraph-for-id conscell paragraphs)
-  ;;submit a cons cell ("123" . "0.56477") and get the paragraph for the id
-  ;;paragraphs is the file name assumed to be in ./db/
-  (let* ((id (assoc-ref conscell "id")))
-	  (assoc-ref paragraphs id)))
 
-(define (recurse-paragraphs-for-ids lst paragraphs results)
-  ;;result is initially '()
-  ;;returns a list of paragraphs
-  (if (null? (cdr lst))
-      (begin
-	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
-	results)	
-      (begin
-	(set! results (cons (get-paragraph-for-id (car lst) paragraphs) results))
-	(recurse-paragraphs-for-ids (cdr lst) paragraphs results))))
-
-(define (get-top-hits needle haystack N paragraphs top-dir)
-  ;;N number of hits desired
+(define (get-top-hits needle haystack n id top-dir)
+  ;;n number of hits desired
   ;;haystack: all embeddings for text
   ;;needle: query to be compared to haystack
-  ;;paragraphs: file name of the list of paragraphs of the text;
+  ;;id: directory id; paragraphs are in indexed-paragraphs.json
  ;; will return highest scoring paragraphs concatenated into a single paragraph
     (let* (
 	   (sorted-scores (get-sorted-scores needle haystack))
-	   (top-5-scores (get-first-n-list sorted-scores 5 0 '()))
-	 ;;  (_ (pretty-print (string-append "paras: " top-5-scores)))
-	   (content  (get-list-from-json-file (string-append top-dir "/db/" paragraphs)))
+	   (top-5-scores (get-first-n-list sorted-scores n 0 '()))
+	   (content  (get-list-from-json-file (string-append top-dir "/db/" id "/indexed-paragraphs.json") #t))
 	   (paras (string-concatenate (recurse-paragraphs-for-ids top-5-scores content '())))
 	   )
        paras))

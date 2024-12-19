@@ -1,0 +1,1 @@
+[{"id":"acbf1a82b78d","doc":"/home/mbc/projects/gollama/text/ppan.txt","title":"ppan","model":"mistral:latest","algorithm":"cosine-sim","date":"241213092503"},{"id":"43933d20019d","doc":"cr2025mod","title":"cr2025mod","chat-model":"gemma2:2b","embeddings-model":"mistral:latest","algorithm":"cosine-sim","date":"241219091015"}]

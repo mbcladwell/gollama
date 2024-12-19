@@ -33,25 +33,26 @@
 	 (_ (put-string p stow)))
     (force-output p)))
 
-(define (save-to-json data file-name)
-  ;;may need to (cons data '()) outside function 
-  (let* (
-	 (stow (scm->json-string  (list->vector data) ))
+(define (save-to-json data file-name pack)
+  ;;pack=#t will (cons data '())  
+  (let* ((data2 (if pack (cons data '()) data))
+	 (stow (scm->json-string  (list->vector data2) ))
 	 (p  (open-output-file file-name))
 	 (_ (put-string p stow)))
     (force-output p)))
 
   
 
-(define (make-doc-list-element file model algo)
+(define (make-doc-list-element file chat-model embeddings-model algo)
   ;;expecting text file with .txt extension
-  ;;file is the full path - must ingest document for md5
+  ;;file is the file name only; must be in text directory
+  ;;must ingest document for md5
   ;;algo: cosine-similarity:cosine-sim 
   (let* (;;(id (get-file-md5 file))
 	 (title  (basename file ".txt"))
-	 (id (substring (get-sha256 (string-append title model algo)) 0 12))
+	 (id (substring (get-sha256 (string-append title chat-model embeddings-model algo)) 0 12))
 	  )
-    `(("id" . ,id)("doc" . ,file)("title" . ,title)("model" . ,model)("algorithm" . ,algo)
+    `(("id" . ,id)("doc" . ,file)("title" . ,title)("chat-model" . ,chat-model)("embeddings-model" . ,embeddings-model)("algorithm" . ,algo)
       ("date" . ,(date->string  (current-date) "~y~m~d~I~M~S")))))
 
 
@@ -59,14 +60,14 @@
   (string-append top-dir "/backup/" (basename file-name ".json") (date->string  (current-date) "-~Y~m~d~H~M~S") ".json"))
 
  
-(define (get-list-from-json-file file )
+(define (get-list-from-json-file file unpack)
   ;; returns the vector converted to list
   (let* ((p  (open-input-file file))
 	 (data  (json->scm p))
-	;; (_ (pretty-print "data in get-json:"))
-	;; (_ (pretty-print data))
+	 (lst (vector->list data))
 	 )
-      (car (vector->list data))))
+     (if unpack (car lst) lst)))
+
 
 
 (define (add-doc-entry doclst top-dir)
@@ -74,12 +75,12 @@
 	 (db-fn (string-append top-dir "/db/db.json"))
 	 (bak-fn (make-backup-file-name "db.json" top-dir))
 	 (_ (copy-file db-fn bak-fn))
-	 (olddocs   (get-list-from-json-file db-fn))
-	 (newdocs (cons doclst olddocs))
+	 (olddocs   (get-list-from-json-file db-fn #t))
+	 (newdocs (cons olddocs `(,doclst)))
 	 )
     (begin
-      (delete-file db-fn)
-      (save-to-json newdocs db-fn)
+      ;;(delete-file db-fn)
+      (save-to-json newdocs db-fn #f)
     )))
   
  

@@ -1,0 +1,546 @@
+f)
+
+Be extra cautious to reduce risk of dropping a metal tool onto battery. It might spark Deltran Battery Tender Plus
+
+or short-circuit battery or other electrical part that may cause explosion.
+
+g)
+
+Remove personal metal items such as rings, bracelets, necklaces, and watches
+
+Designed for six cell lead-acid batteries
+
+when working with a lead-acid battery. A lead-acid battery can produce a short-circuit current high enough to weld a ring or the like to metal, causing a severe burn.
+
+h)
+
+Use charger for charging a LEAD-ACID battery only. It is not intended to supply power to a low voltage electrical system other than in a starter-motor application. Do
+
+
+
+not use battery charger for charging dry-cell batteries that are commonly used with IMPORTANT SAFETY INSTRUCTIONS
+
+home appliances. These batteries may burst and cause injury to persons and damage to property.
+
+1)
+
+SAVE THESE INSTRUCTIONS
+
+i)
+
+NEVER charge a frozen battery.
+
+2)
+
+Do not expose charger to rain or snow.
+
+12) PREPARING TO CHARGE
+
+3)
+
+Use of an attachment not recommended or sold by the battery charger manufacturer may a)
+
+If necessary to remove battery from vehicle to charge, always remove grounded result in a risk of fire, electric shock, or injury to persons.
+
+terminal from battery first. Make sure all accessories in the vehicle are off, so as not 4)
+
+To reduce risk of damage to electric plug and cord, pull by plug rather than cord when to cause an arc.
+
+disconnecting charger.
+
+b)
+
+Be sure area around battery is well ventilated while battery is being charged.
+
+5)
+
+An extension cord should not be used unless absolutely necessary. Use of improper c)
+
+Clean battery terminals. Be careful to keep corrosion from coming in contact with extension cord could result in a risk of fire and electric shock. If an extension cord must eyes.
+
+be used, make sure:
+
+d)
+
+Add distilled water in each cell until battery acid reaches level specified by battery a)
+
+That pins on plug of extension cord are the same number, size, and shape as those of manufacturer. Do not overfill. For a battery without removable cell caps, such as plug on charger;
+
+valve regulated lead acid batteries, carefully follow manufacturer’s recharging b)
+
+That extension cord is properly wired and in good electrical condition; and instructions.
+
+c)
+
+That wire size is large enough for ac ampere rating of charger as specified in Table 1
+
+e)
+
+Study all battery manufacturer’s specific precautions such as removing or not removing cell caps while charging and recommended rates of charge.
+
+TABLE 1
+
+f)
+
+Determine voltage of battery by referring to car owner’s manual. Do not use the battery charger unless battery voltage matches the output voltage rating of the
+
+
+
+charger.
+
+Length of Cord, Feet
+
+25
+
+50
+
+100
+
+150
+
+13) CHARGER
+
+LOCATION
+
+AWG Size of Cord 18 18 18 16
+
+a)
+
+Locate charger as far away from battery as dc cables permit.
+
+b)
+
+Never place charger directly above battery being charged; gases from battery will corrode and damage charger.
+
+6)
+
+Do not operate charger with damaged cord or plug – replace the cord or plug c)
+
+Never allow battery acid to drip on charger when reading electrolyte specific gravity immediately.
+
+or filling battery.
+
+7)
+
+Do not operate charger if it has received a sharp blow, been dropped, or otherwise d)
+
+Do not operate charger in a closed-in area or restrict ventilation in any way.
+
+damaged in any way; take it to a qualified serviceman.
+
+e)
+
+Do not set a battery on top of charger.
+
+8)
+
+Do not disassemble charger; take it to a qualified serviceman when service or repair is 14) DC CONNECTION PRECAUTIONS
+
+required. Incorrect reassembly may result in a risk of electric shock or fire.
+
+a)
+
+Connect and disconnect dc output clips only after setting any charger switches to 9)
+
+To reduce risk of electric shock, unplug charger from outlet before attempting any
+
+offposition and removing ac cord from electric outlet. Never allow clips to touch maintenance or cleaning. Turning off controls will not reduce this risk.
+
+each other.
+
+10) WARNING – RISK OF EXPLOSIVE GASES.
+
+b)
+
+Attach clips to battery and chassis as indicated in 15(e), 15(f), and 16(b) through a)
+
+WORKING IN VICINITY OF A LEAD-ACID BATTERY IS DANGEROUS.
+
+16(d).
+
+BATTERIES GENERATE EXPLOSIVE GASES DURING NORMAL BATTERY
+
+15) FOLLOW THESE STEPS WHEN BATTERY IS INSTALLED IN VEHICLE. A SPARK
+
+OPERATION. FOR THIS REASON, IT IS OF UTMOST IMPORTANCE THAT YOU
+
+NEAR BATTERY MAY CAUSE BATTERY EXPLOSION. TO REDUCE RISK OF A FOLLOW THE INSTRUCTIONS EACH TIME YOU USE THE CHARGER.
+
+SPARK NEAR BATTERY:
+
+b)
+
+To reduce risk of battery explosion, follow these instructions and those published by a)
+
+Position ac and dc cords to reduce risk of damage by hood, door, or moving engine battery manufacturer and manufacturer of any equipment you intend to use in part.
+
+vicinity of battery. Review cautionary marking on these products and on engine.
+
+b)
+
+Stay clear of fan blades, belts, pulleys, and other parts that can cause injury to 11) PERSONAL
+
+PRECAUTIONS
+
+persons.
+
+a)
+
+Consider having someone close enough by to come to your aid when you work near c)
+
+Check polarity of battery posts. POSITIVE (POS, P, +) battery post usually has a lead-acid battery.
+
+larger diameter than NEGATIVE (NEG, N,–) post.
+
+b)
+
+Have plenty of fresh water and soap nearby in case battery acid contacts skin, d)
+
+Determine which post of battery is grounded (connected) to the chassis. If negative clothing, or eyes.
+
+post is grounded to chassis (as in most vehicles), see (e). If positive post is c)
+
+Wear complete eye protection and clothing protection. Avoid touching eyes while grounded to the chassis, see (f).
+
+working near battery.
+
+e)
+
+For negative-grounded vehicle, connect POSITIVE (RED) clip from battery charger d)
+
+If battery acid contacts skin or clothing, wash immediately with soap and water. If to POSITIVE (POS, P, +) ungrounded post of battery. Connect NEGATIVE (BLACK) acid enters eye, immediately flood eye with running cold water for at least 10
+
+clip to vehicle chassis or engine block away from battery. Do not connect clip to minutes and get medical attention immediately.
+
+carburetor, fuel lines, or sheet-metal body parts. Connect to a heavy gage metal e)
+
+NEVER smoke or allow a spark or flame in vicinity of battery or engine.
+
+part of the frame or engine block.
+
+1
+
+2
+
+P/N 392-0084-R0
+
+
+
+
+
+f)
+
+For positive-grounded vehicle, connect NEGATIVE (BLACK) clip from battery charger to NEGATIVE (NEG, N, –) ungrounded post of battery. Connect POSITIVE
+
+USER INSTRUCTIONS
+
+(RED) clip to vehicle chassis or engine block away from battery. Do not connect clip
+
+
+
+to carburetor, fuel lines, or sheet-metal body parts. Connect to a heavy gage metal AUTOMATIC CHARGING AND BATTERY STATUS MONITORING: part of the frame or engine block.
+
+Battery Tender® Plus chargers are completely automatic and may be left g)
+
+When disconnecting charger, turn switches to off, disconnect AC cord, remove clip connected to both AC power and to the battery that it is charging for long from vehicle chassis, and then remove clip from battery terminal.
+
+periods of time. The charger output power, voltage, and current depends h)
+
+See operating instructions for length of charge information.
+
+on the condition of the battery it is charging. Battery Tender® Plus chargers 16) FOLLOW THESE STEPS WHEN BATTERY IS OUTSIDE VEHICLE. A SPARK NEAR
+
+THE BATTERY MAY CAUSE BATTERY EXPLOSION. TO REDUCE RISK OF A have 2 status indicator lights that provide a visual means to determine the SPARK NEAR BATTERY:
+
+operating mode of the charger and hence the condition of the battery a)
+
+Check polarity of battery posts. POSITIVE (POS, P, +) battery post usually has a connected to the charger.
+
+larger diameter than NEGATIVE (NEG, N, –) post.
+
+
+
+b)
+
+Attach at least a 24-inch-long 6-gauge (AWG) insulated battery cable to NEGATIVE
+
+The two-colored status indicator lights are available to determine whether (NEG, N, –) battery post.
+
+the charger is operating in one of the 3 primary charge modes: the bulk c)
+
+Connect POSITIVE (RED) charger clip to POSITIVE (POS, P, +) post of battery.
+
+mode (full charge, constant current, battery is 0% to 85% charged), the d)
+
+Position yourself and free end of cable as far away from battery as possible – then absorption mode (high constant voltage, battery is 85% to 100% charged), connect NEGATIVE (BLACK) charger clip to free end of cable.
+
+e)
+
+Do not face battery when making final connection.
+
+or the storage/float maintenance mode (low constant voltage, battery is f)
+
+When disconnecting charger, always do so in reverse sequence of connecting 100% to 103% charged).
+
+procedure and break first connection while as far away from battery as practical.
+
+
+
+g)
+
+A marine (boat) battery must be removed and charged on shore. To charge it on When the battery is fully charged, the green status indicator light will turn board requires equipment specially designed for marine use.
+
+on and the charger will switch to a storage/maintenance charge mode. The Battery Plus® Plus charger will automatically monitor and maintain the GROUNDING AND AC POWER CORD CONNECTION INSTRUCTIONS –
+
+battery at full charge.
+
+Charger should be grounded to reduce risk of electric shock. Charger is equipped with an electric cord having an equipment-grounding conductor and a grounding plug. The plug must be plugged into an outlet that is properly installed and grounded in accordance with all local codes and ATTENTION: The Battery Tender® Plus CHARGER HAS A SPARK
+
+ordinances.
+
+FREE CIRCUITRY. The output alligator clips or ring terminals will not spark when they are touched together. The Battery Tender® Plus charger DANGER – Never alter AC cord or plug provided – if it will not fit outlet, have proper outlet installed will not produce an output voltage until it senses at least 3 volts from the by a qualified electrician. Improper connection can result in a risk of an electric shock.
+
+
+
+battery. It must be connected to a battery with the correct polarity before it This battery charger is for use on a nominal 120-volt circuit, and has a grounding plug that looks like will start charging a battery. Therefore, if you plug the AC power cord into the plug illustrated in sketch A in Figure 1. A temporary adapter, which looks like the adapter an AC power outlet, and if the output alligator clips or ring terminals are not illustrated in sketches B and C, may be used to connect this plug to a two-pole receptacle as shown connected to a battery, and if you touch the alligator clips or ring terminals in sketch B if a properly grounded outlet is not available. The temporary adapter should be used only together, there will be no electrical spark.
+
+until a properly grounded outlet can be installed by a qualified electrician.
+
+
+
+
+
+NOTE:
+
+ADAPTER
+
+THE OUTPUT CLIPS OR RING TERMINALS MUST BE CONNECTED TO
+
+A BATTERY BEFORE THE CHARGER CAN PRODUCE AN OUTPUT
+
+METAL SCREW
+
+VOLTAGE.
+
+COVER OF GROUNDED
+
+GROUNDING
+
+OUTLET BOX
+
+MEANS
+
+
+
+GROUNDING
+
+If the charger is hooked up backwards, the red light and green light will PIN
+
+(A)
+
+(B)
+
+(C)
+
+flash alternately. The alligator clips or accessory ring terminals must be Figure 1
+
+connected to the battery, with the proper polarity, Red to Positive (+ output to + battery post) and Black to Negative (- output to - battery post), before DANGER – Before using adapter as illustrated, be certain that center screw of outlet plate is grounded. The green-colored rigid ear or lug extending from adapter must be connected to a the charger will generate any output voltage.
+
+properly grounded outlet– make certain it is grounded. If necessary, replace original outlet cover plate screw with a longer screw that will secure adapter ear or lug to outlet cover plate and make TIME REQUIRED TO CHARGE A BATTERY:
+
+ground connection to grounded outlet.
+
+The Battery Tender® Plus charges at a rate of 1.25 Amps, or 1.25 Amp-
+
+
+
+Hours per hour. Therefore, a fully discharged 15 Amp-Hour battery will NOTE:
+
+USE OF AN ADAPTER IS NOT ALLOWED IN CANADA. IF A GROUNDING TYPE
+
+take approximately 10 hours to recharge to 80% capacity.
+
+RECEPTACLE IS NOT AVAILABLE, DO NOT USE THIS APPLIANCE UNTIL THE
+
+PROPER OUTLET IS INSTALLED BY A QUALIFIED ELECTRICIAN
+
+3
+
+4
+
+
+
+
+
+WORKING WITH A DEAD BATTERY OR A BATTERY WITH A VERY
+
+TROUBLESHOOTING CHECK LIST:
+
+LOW VOLTAGE:
+
+
+
+If you try to charge a dead battery having a voltage below 3 Volts, the 1.
+
+CHARGER LIGHTS DO NOT TURN ON:
+
+Battery Tender® Plus charger will not start. An internal safety circuit a.
+
+Check to make sure AC outlet is supplying power by prevents the charger from generating any output voltage unless it senses at least 3 Volts at the charger output. In this situation, the red light will plugging in a lamp, an appliance, or a voltage meter.
+
+continue to flash, indicating that a charge has not been initiated.
+
+2.
+
+THE GREEN LIGHT GOES ON IMMEDIATELY WHEN
+
+
+
+CHARGING A DISCHARGED BATTERY:
+
+NOTE:
+
+a.
+
+The battery may be defective, take battery to the If a 12 Volt, Lead-Acid battery has an output voltage of less than 9 volts dealer to be tested.
+
+when it is at rest, when it is neither being charged nor supplying electrical 3.
+
+CHARGER IS CHARGING BUT THE GREEN LIGHT DOES
+
+current to an external load, there is a good chance that the battery is NOT GO ON:
+
+defective. As a frame of reference, a fully charged 12-Volt, Lead-Acid a.
+
+The battery may be defective, take battery to the battery will have a rest-state, no-load voltage of approximately 12.9 volts.
+
+dealer to be tested.
+
+A fully discharged 12-Volt, Lead-Acid battery will have a rest-state, no-load b.
+
+The battery has an excessive current draw, remove voltage of approximately 11.4 volts. That means that a voltage change of only 1.5 volts represents the full range of charge 0% to 100% on a 12-Volt, battery from equipment.
+
+Lead-Acid battery. Depending on the manufacturer, and the age of the 4.
+
+THE RED LIGHT COMES ON WHEN STORAGE
+
+battery, the specific voltages will vary by a few tenths of a volt, but the 1.5-CHARGING BATTERIES:
+
+volt range will still be a good indicator of the battery charge %.
+
+a.
+
+The battery may be defective, take battery to the
+
+
+
+dealer to be tested.
+
+STATUS INDICATING LIGHTS: If neither light is lit, then the battery is b.
+
+The battery has an excessive current draw, remove not properly connected and/or the charger is not plugged into AC
+
+battery from equipment.
+
+power. The following describes light operation:
+
+
+
+
+
+RED LIGHT FLASHING – The red light flashing indicates that the battery charger has AC power available and that the
+
+ This appliance is not intended for use by persons (including microprocessor is functioning properly. If the red light continues to flash, then either the battery voltage is too low (less than 3 volts) or children) with reduced physical, sensory or mental the output alligator clips or ring terminals are not connected capabilities, or lack of experience and knowledge, unless correctly.
+
+they have been given supervision or instruction concerning
+
+
+
+RED LIGHT ON STEADY – Whenever the red light is on steady, a use of the appliance by a person responsible for their safety.
+
+battery is connected properly and the charger is charging the
+
+ Children should be supervised to ensure that they do not battery. The red light will remain on until the charger completes the play with the appliance.
+
+charging stage.
+
+
+
+
+
+GREEN LIGHT FLASHING –When the green light is flashing, and the red light is on, the battery is greater than 80% charged and may be removed from the charger and used if necessary.
+
+Whenever possible, leave the battery on charge until the green light is solid.
+
+
+
+GREEN LIGHT ON STEADY –When the green light stops flashing and burns steady, the charge is complete and the battery can be returned to service if necessary. It can also stay connected to maintain the battery for an indefinite period of time
+
+
+
+
+
+5
+
+6
+
+
+
+
+
+FCC Warning
+
+Deltran Battery Tender Plus
+
+
+
+Développé pour des batteries acide-plomb
+
+Title 47 Subpart, 15.105(b)
+
+à six cellules
+
+Note: This equipment has been tested and found to comply with the limits for a class B digital device, pursuant to part 15 of the FCC Rules. These limits are
+
+
+
+designed to provide reasonable protection against harmful interference in INSTRUCTIONS IMPORTANTES CONCERNANT LA
+
+residential installation. This equipment generates, uses and can radiate radio frequency energy and, if not installed and used in accordance with the instructions, SÉCURITÉ
+
+may cause harmful interference to radio television reception, which can be CONSERVER CES INSTRUCTIONS. CE MANUEL
+
+determined by tuning the equipment off and on, the user is encouraged to try to correct the interference by one or more of the following measures: CONTIENT DES INSTRUCTIONS IMPORTANTES
+
+
+
+CONCERNANT LA SÉCURITÉ ET LE FONCTIONNEMENT.
+
+-
+
+Reorient or relocate the receiving antenna.
+
+
+
+-
+
+Increase the separation between the equipment and receiver.
+
+-
+
+Connect the equipment into an outlet on a circuit different from that to 1)
+
+IL EST DANGEREUX DE TRAVAILLER A PROXIMITÉ D’UNE BATTERIE AU
+
+which the receiver is connected.
+
+PLOMB. LES BATTERIES PRODUISENT DES GAZ EXPLOSIFS EN
+
+-
+
+Consult the dealer or an experienced radio/TV technician for help.
+
+SERVICE NORMAL. IL EST AUSSI IMPORTANT DE TOUJOURS RELIRE
+
+
+

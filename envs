@@ -3,4 +3,4 @@
 "chat-model":"gemma2:2b",
 "embeddings-model":"mistral:latest",
 "prefix":"",
-"top-dir":"/home/mbc/projects/gollama"}
+"top-dir":""}

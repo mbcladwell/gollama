@@ -23,6 +23,7 @@
 	     (gollama utilities)	     
 	     (gollama ollama)	     
 	     (gollama db)
+	     (gollama textman)
 	     (gollama menus)
 	     (rnrs sorting) ;;list-sort
 	     )
@@ -35,7 +36,7 @@
 ;;https://www.youtube.com/watch?v=ztBJqzBU5kc  langchain and embedding
 ;;https://github.com/ollama/ollama/blob/main/docs/api.md ollama api
 
-(define *top-dir* #f)
+(define *top-dir* (getcwd))
 (define *chat-uri* #f) 
 (define *embeddings-uri* #f) 
 (define *chat-model* #f) 
@@ -50,7 +51,6 @@
       (set! *chat-model* (assoc-ref varlst "chat-model"))
       (set! *embeddings-model* (assoc-ref varlst "embeddings-model"))
       (set! *prefix* (assoc-ref varlst "prefix"))
-      (set! *top-dir* (assoc-ref varlst "top-dir"))
       ))
 
 
@@ -58,6 +58,120 @@
 (define system-prompt "You are a helpful reading assistant who answers questions based on snippets of text provided in context. Answer only using the context provided, being as concise as possible. If you are unsure just say that you don't know. Context:")
 
 (define sys-prompt-short "You are a helpful reading assistant who answers questions based on snippets of text provided in context. Answer only using the context provided, being as concise as possible. If you are unsure just say that you don't know.")
+
+
+(define (ingest file)
+  ;;########## 1 ingest
+  ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(ingest "cr2025mod.txt")'
+  ;;guile -L . -l "gollama.scm" -c '(ingest "ppan.txt" "/home/ubuntu/gollama")'
+  (begin
+    (set-envs (get-envs (getcwd)))
+    (ingest-doc file *chat-model* *embeddings-model* *embeddings-uri* *top-dir* "cosine-sim")))
+
+(define (retrieve-embeddings id)
+  ;;########## 2 get embeddings
+  ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(retrieve-embeddings "a5b2fec2ad1f")'
+  ;;guile -L . -l "gollama.scm" -c '(retrieve-embeddings "e210c4f856f0")'
+  (let* ((_  (set-envs (get-envs (getcwd))))
+	 (db-path (string-append *top-dir* "/db/" id "/"))
+	 (ipara-file (string-append db-path "indexed-paragraphs.json"))
+	 (ipara-lst   (get-list-from-json-file ipara-file #t))
+	 (embeddings (recurse-process-para id ipara-lst '() *embeddings-model* *embeddings-uri* *top-dir*))
+	 (_ (save-to-json embeddings (string-append db-path "embedded-paragraphs.json") #t))
+
+	 (sys-prompt-file (string-append db-path "indexed-system-prompts.json"))
+	 (sys-p-flag (access? sys-prompt-file F_OK))
+	 (_ (if sys-p-flag (let* ((a (get-list-from-json-file sys-prompt-file #t))
+				;;  (_ (pretty-print a))
+				  (b (recurse-process-para id  a '() *embeddings-model* *embeddings-uri* *top-dir*))
+				;;  (_ (pretty-print b))
+				  )			     			       
+			     (save-to-json b (string-append db-path "embedded-system-prompts.json" ) #t)
+			       )))
+
+	 (queries-file (string-append db-path "indexed-queries.json"))
+	 (q-flag (access? queries-file F_OK))
+	 (_ (if q-flag (let* ((a (get-list-from-json-file queries-file #t))
+			      (b (recurse-process-para id a '() *embeddings-model* *embeddings-uri* *top-dir*))
+				  )			     			       
+			     (save-to-json b (string-append db-path "embedded-queries.json" ) #t)
+			     )))
+	 ;; (contexts-file (string-append db-path "indexed-contexts.json"))
+	 ;; (q-flag (access? contexts-file F_OK))
+	 ;; (_ (if q-flag (let* ((a (get-list-from-json-file contexts-file #t))
+	 ;; 		      (b (recurse-process-para id a '() *embeddings-model* *embeddings-uri* *top-dir*))
+	 ;; 			  )			     			       
+	 ;; 		     (save-to-json b (string-append db-path "embedded-queries.json" ) #t)
+	 ;; 		     )))
+	 
+	 )
+    #f))
+
+(define (match-query-paragraphs id)
+  ;;########## 3 get paragraphs most similar to queries
+  ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(match-query-paragraphs "a5b2fec2ad1f")'
+  ;;guile -L . -l "gollama.scm" -c '(match-query-paragraphs "a5b2fec2ad1f")'
+  (let* ((_  (set-envs (get-envs (getcwd))))
+	 (db-path (string-append *top-dir* "/db/" id "/"))
+	 (query-embeds (get-list-from-json-file (string-append db-path "embedded-queries.json") #t))
+	 (corpus-embeds (get-list-from-json-file (string-append db-path "embedded-paragraphs.json") #t))
+;;	 (_ (pretty-print (string-append (length corpus-embeds))))
+	 (queries  (get-list-from-json-file (string-append db-path "indexed-queries.json") #t))
+	 ;;(_ (pretty-print (assoc-ref queries "1")))
+;;	 (_ (pretty-print (assoc-ref query-embeds "1"))) ;;<====compare this to all paragraphs embeddings
+	 (qem (assoc-ref query-embeds "1"))
+	 
+	 (top-n-concat (get-top-hits qem corpus-embeds 5 id *top-dir*))
+	 (indexed-contexts (string-append db-path "indexed-contexts.json"))
+	 )    
+    (begin
+      ;;(pretty-print top5-concat)
+      (save-to-json top-n-concat (string-append db-path "indexed-contexts.json" ) #t)
+      )
+  ))
+
+  
+
+(define (query-with-rag id sys-prompt-id context-id query-id )
+  ;;id: db directory id
+  ;;########## 4 augment query with RAG
+  ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(query-with-rag "43933d20019d" "1" "1" "1")'
+  ;;guile -L . -l "gollama.scm" -c '(query-with-rag "a5b2fec2ad1f" "1" "1" "1")'
+  ;;response = ollama.chat { model="mistral" messages=[ "role":"system"
+  ;; 						    "content":"SYSTEM_PROMPT"
+  ;; 						    + "\n".join.paragraphs (most similar chunks)]}  join to the system prompt
+  ;;         {"role":"user","content":prompt}
+  (let* ((_  (set-envs (get-envs (getcwd))))
+	 (db-path (string-append *top-dir* "/db/" id "/"))
+	 (context (assoc-ref (get-list-from-json-file (string-append db-path "indexed-contexts.json") #t) context-id))
+	;; (_ (pretty-print context))
+	 (sys-prompt (assoc-ref (get-list-from-json-file (string-append db-path "indexed-system-prompts.json") #t) sys-prompt-id))
+	 (query (assoc-ref (get-list-from-json-file (string-append db-path "indexed-queries.json") #t) query-id))
+	 (system-prompt (string-append sys-prompt " Context: " context))	 
+	 
+;;	 (data `(("model" . ,*chat-model*)("messages" . #((("role" . "system")("content" . ,system-prompt))(("role" . "user")("content" . ,query))))))
+	 (data `(("model" . ,*chat-model*)("messages" . #((("role" . "system")("content" . ,system-prompt))(("role" . "user")("content" . ,query))))
+		 ("options" . #((("num_ctx" . 4096))))))
+	 )
+;;    (pretty-print (scm->json-string data))
+    (pretty-print (get-chat-response *chat-uri* data))
+    ))
+      
+
+(define (combine-all-paragraphs file id)
+  ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(combine-all-paragraphs "cr2025mod.txt" "43933d20019d")'
+  (let* ((_  (set-envs (get-envs (getcwd))))
+	 (db-path (string-append *top-dir* "/db/" id "/"))
+	 (the-file (string-append db-path "/" file))
+	 (paragraphs (collect-paragraphs the-file))
+	 (norm-para (normalize-para-lengths paragraphs 30 '() '()))
+	 (norm-para-concat (string-concatenate norm-para))
+	 (alst (acons "1" norm-para-concat '()))
+	 (dest-file (string-append db-path "/indexed-contexts.json" ))
+	 (p  (open-output-file dest-file))
+	 (_ (put-string p (scm->json-string alst))))
+    (force-output p)))
+  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
@@ -69,64 +183,12 @@
   (let* ((start-time (current-time time-monotonic))
 	 
 	 (_  (pretty-print (string-append "args: " args)))
-	 (_ (set-envs (get-envs  args)))
-	 (_ (set-envs (get-envs  *top-dir*)))
-	 (_  (pretty-print (string-append "in main: " *chat-uri*)))
-	 (_  (pretty-print (string-append "in main: " *chat-model*)))
+	 (_ (set-envs (get-envs (getcwd))))
+	;; (_ (set-envs (get-envs  *top-dir*)))
+	 ;;(_  (pretty-print (string-append "in main: " *chat-uri*)))
+	 ;;(_  (pretty-print (string-append "in main: " *chat-model*)))
 	 ;; (_ (pretty-print (get-first-n-list mylist 10 0 '())))
-	;; (haystack "ppan-embeddings-2024120403091733324998.json")
-	;; (paragraphs "ppan-paragraphs-2024120403091733324998.json")	 
-	 ;; (needle "Where does peter take wendy in the story?")	 
-	;; (_   (get-top-hits needle haystack  5 paragraphs *embeddings-uri* *model* *top-dir*))   
 	;; (_ (pretty-print (get-embedding *embeddings-uri* *model* "sometext" )))
-	 ;;(_ (pretty-print (file-sha256 "/home/mbc/projects/gollama/text/minppan.txt")))
-;;       ########## 1 ingest
-;;	 (_ (ingest-doc "/home/mbc/projects/gollama/text/ppan.txt" *embeddings-model* *embeddings-uri* *top-dir* "cosine-sim"))
-
-;;       ########## 2 get embeddings
-;;	 (npara-file (string-append *top-dir* "/db/acbf1a82b78d-npar.json"))
-;;	 (npara-lst   (get-list-from-json-file npara-file))
-;;	 (_ (pretty-print npara-lst))
-;;	 (_ (recurse-process-para "acbf1a82b78d" npara-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
-
-;;	 #######################################
-	;; (elst '((721 . #(0.0059263664 0.3 0.4  0.5))(722 . #(0.0059263664 0.3 0.4  0.5)) ) )
-	;; (_ (pretty-print (scm->json-string (acons "embeddings" (list->vector elst) '()))))
-	 ;; (_ (pretty-print (scm->json-string  (list->vector elst) )))
-	;; (elst (cons elst '()))
-;;	 (_ (save-to-json (cons elst '()) (string-append *top-dir* "/db/" "jksd97suya5" "-embe.json")))
-;;	 #######################################
-
-;;       ########## 3 get paragraphs most similar to queries
-	 (q-file (string-append *top-dir* "/db/queries-ppan.json"))
-	 (q-lst   (get-list-from-json-file q-file))
-;;	 (_ (pretty-print q-lst))
-;;	 (_ (recurse-process-para "queries-ppan" q-lst 0 '() '() *embeddings-model* *embeddings-uri* *top-dir*))
-
-	 (query-embeds (get-list-from-json-file (string-append *top-dir* "/db/queries-ppan-embe.json")))
-	 (corpus-embeds (get-list-from-json-file (string-append *top-dir* "/db/acbf1a82b78d-embe.json")))	 
-	 (queries  (get-list-from-json-file (string-append *top-dir* "/db/queries-ppan-ipar.json")))
-	 (q-embed  (get-list-from-json-file (string-append *top-dir* "/db/queries-ppan-embe.json")))
-;;	 (_ (pretty-print (assoc-ref queries "1")))
-;;	 (_ (pretty-print (assoc-ref q-embed "1"))) ;;<====compare this to all paragraphs embeddings
-	 (qem (assoc-ref q-embed "1"))
-	 
-	 (top5-concat (get-top-hits qem corpus-embeds 5 "acbf1a82b78d-ipar.json" *top-dir*))
-;;	 (_ (pretty-print top5-concat))
-;;       ########## 4 augment query with RAG
-;;        response = ollama.chat { model="mistral" messages=[ "role":"system"
-;; 						    "content":"SYSTEM_PROMPT"
-;; 						    + "\n".join.paragraphs (most similar chunks)]}  join to the system prompt
-	 ;;         {"role":"user","content":prompt}
-	 (system-prompt "You are a helpful reading assistant who answers questions based on snippets of text provided in context. Answer only using the context provided, being as concise as possible. If you are unsure just say that you don't know.")
-
-;;	 (system-prompt (string-append system-prompt " Context: " top5-concat))	 
-;;	 (prompt "Who is the story's primary villain?")
-	 (prompt "Where does Peter take Wendy in the story?")	 
-
-	 (data `(("model" . ,*chat-model*)("messages" . #((("role" . "system")("content" . ,system-prompt))(("role" . "user")("content" . ,prompt))))))
-
-	 (_ (pretty-print (get-chat-response *chat-uri* data)))
 	 
 	 (stop-time (current-time time-monotonic))
 	 (elapsed-time (ceiling (time-second (time-difference stop-time start-time))))
