@@ -241,6 +241,8 @@
 	 (source-file (string-append top-dir "/text/" file))
 	 (dest-file (string-append top-dir "/db/" id "/" file))
 	 (paragraphs (collect-paragraphs source-file))		     
+	 (file-name (string-append top-dir "/db/" (assoc-ref doc-lst  "id") "/paragraphs.json"))
+	 (_ (save-to-json paragraphs file-name #t))
 	 (_ (pretty-print (string-append "Paragraph count original doc: " (number->string (length paragraphs)))))
 	 ;;count token per paragraph and sort; determine min number of tokens
 	 ;;by removing counts <20 then taking the middle value of remaining
@@ -249,6 +251,8 @@
 	 (_ (pretty-print (string-append "Minimum tokens per paragraph: " (number->string min-tokens))))
 	 ;;normalize the paragraph number i.e. make sure all paragraphs have min-tokens tokens
 	 (norm-para (normalize-para-lengths paragraphs min-tokens '() '()))
+	 (file-name (string-append top-dir "/db/" (assoc-ref doc-lst  "id") "/normalized-paragraphs.json"))
+	 (_ (save-to-json norm-para file-name #t))
 	 (_ (pretty-print (string-append "Paragraph count norm doc: " (number->string (length norm-para)))))
 	 (indexed-paragraphs (provide-indices norm-para 0))	 
 	 (file-name (string-append top-dir "/db/" (assoc-ref doc-lst  "id") "/indexed-paragraphs.json"))

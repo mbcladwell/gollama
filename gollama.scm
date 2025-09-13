@@ -171,7 +171,54 @@
 	 (p  (open-output-file dest-file))
 	 (_ (put-string p (scm->json-string alst))))
     (force-output p)))
+
+(define (tokens-per-paragraph id file n)
+  ;;file: file name only expected in db/id dir
+  ;;n: number of tokens
+  ;;from original text generate a list of paragraphs with no more than n tokens without breaking up paragraphs
+  ;;guix shell -m manifest.scm -- guile -L . -l "gollama.scm" -c '(tokens-per-paragraph "e210c4f856f0" "norm-para.json" "2000")'
+  ;;guile -L . -l "gollama.scm" -c '(tokens-per-paragraph "e210c4f856f0" "norm-para.json" "2000")'
+  (let* ((_  (set-envs (get-envs (getcwd))))
+	 (db-path (string-append *top-dir* "/db/" id "/"))
+	 (the-file (string-append db-path "/" file))
+	 (norm-para (get-list-from-json-file the-file #f))
+	  
+	 )
+    (pretty-print norm-para)))
+
+(define (max-para-lengths lst max-length holder out)
+  ;;combine neighboring paragraphs so that they have a maximum number of tokens
+  ;;lst: list of paragraphs
+  (if (null? (cdr lst))
+      (begin
+	(if (> (length (string-split (string-concatenate holder) #\space)) 1)
+	    (begin
+	       (set! out (cons (string-concatenate holder) out))
+	       ))
+	(set! out (cons (car lst) out))
+	 out)
+      (begin
+	(if (> (length (string-split (car lst) #\space)) max-length)
+	    (begin
+	      (set! out (cons (car lst) out))
+	      (max-para-lengths (cdr lst) max-length holder out)
+	      )
+	    (begin
+	      (set! holder (cons (car lst) holder))
+	      (set! holder (cons " " holder))
+	      (if (> (length (string-split (string-concatenate holder) #\space)) max-length)
+		  (begin
+		   ;; (pretty-print holder)
+		    (set! out (cons (string-concatenate holder) out))
+		    (set! holder '())
+		    ))
+	      (max-para-lengths (cdr lst) max-length holder out)	      
+	      )))
+      ))
+
   
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;guix shell -m manifest.scm -- guile -l "gollama.scm" -c '(main "/home/mbc/projects/gollama")'
